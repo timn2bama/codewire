@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#0f172a"/>
+  <!-- copper wire forming a 'C' / bend -->
+  <path d="M352 140
+           a150 150 0 1 0 0 232"
+        fill="none" stroke="#c2683a" stroke-width="56" stroke-linecap="round"/>
+  <!-- conduit bend tick marks -->
+  <circle cx="256" cy="256" r="26" fill="#e2e8f0"/>
+</svg>

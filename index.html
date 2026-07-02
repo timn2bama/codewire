@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no"
+    />
+    <meta name="theme-color" content="#0f172a" />
+    <title>Codewire — NEC Field Calculators for Electricians</title>
+    <meta
+      name="description"
+      content="Five NEC calculators in one fast, offline app for electricians: voltage drop, conduit fill, conduit bending, box fill, and wire ampacity. Instant pass/fail to the National Electrical Code."
+    />
+    <link rel="canonical" href="https://codewire.tools/" />
+    <meta name="robots" content="index, follow" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Codewire" />
+    <meta property="og:title" content="Codewire — NEC Field Calculators for Electricians" />
+    <meta
+      property="og:description"
+      content="Voltage drop, conduit fill, conduit bending, box fill, and wire ampacity — five NEC calculators in one fast, offline app. Save jobs and export reports."
+    />
+    <meta property="og:url" content="https://codewire.tools/" />
+    <meta property="og:image" content="https://codewire.tools/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Codewire — NEC Field Calculators" />
+    <meta
+      name="twitter:description"
+      content="Five NEC calculators for electricians in one fast, offline app: voltage drop, conduit fill, conduit bending, box fill, wire ampacity."
+    />
+    <meta name="twitter:image" content="https://codewire.tools/og.png" />
+
+    <!-- Structured data for search + AI engines -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Codewire",
+        "applicationCategory": "BusinessApplication",
+        "applicationSubCategory": "Electrical Engineering Calculator",
+        "operatingSystem": "Web, iOS, Android (PWA)",
+        "url": "https://codewire.tools/",
+        "description": "Codewire is a field reference app for electricians that combines the five most-used National Electrical Code (NEC) calculators in one fast, offline, mobile-first interface: voltage drop, conduit fill, conduit bending, box fill, and wire ampacity. It gives instant pass/fail results, reverse-solves for the right wire or conduit size, and lets electricians save calculations to jobs.",
+        "featureList": [
+          "Voltage Drop calculator (NEC 210.19 / Chapter 9)",
+          "Conduit Fill calculator (NEC Chapter 9, Tables 1, 4, 5)",
+          "Conduit Bending calculator (offsets, saddles, 90° stub-ups)",
+          "Box Fill calculator (NEC 314.16)",
+          "Wire Ampacity calculator with derating (NEC 310.16 / 310.15)",
+          "Works offline",
+          "Save calculations to jobs with cloud sync",
+          "Export job reports to PDF"
+        ],
+        "offers": [
+          {
+            "@type": "Offer",
+            "name": "Free",
+            "price": "0",
+            "priceCurrency": "USD",
+            "description": "All five calculators, free, with up to 2 saved jobs on-device."
+          },
+          {
+            "@type": "Offer",
+            "name": "Codewire Pro (Monthly)",
+            "price": "6.00",
+            "priceCurrency": "USD",
+            "description": "Unlimited jobs, cloud sync across devices, and PDF export. $6/month, 7-day free trial."
+          },
+          {
+            "@type": "Offer",
+            "name": "Codewire Pro (Yearly)",
+            "price": "45.00",
+            "priceCurrency": "USD",
+            "description": "Pro features billed annually at $45/year (about 38% off monthly)."
+          }
+        ],
+        "audience": {
+          "@type": "Audience",
+          "audienceType": "Electricians and electrical apprentices"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <!-- Fallback content for crawlers that don't run JavaScript. The app
+         replaces #root on load, so users never see this; crawlers do. -->
+    <div id="root">
+      <main style="max-width: 42rem; margin: 0 auto; padding: 1.5rem">
+        <h1>Codewire — NEC Field Calculators for Electricians</h1>
+        <p>
+          Codewire puts the five most-used National Electrical Code (NEC)
+          calculators in one fast, offline app, so electricians stop juggling
+          several tools and a paper code book on the job. Every calculation
+          gives an instant pass/fail against the code.
+        </p>
+        <h2>The five calculators</h2>
+        <ul>
+          <li>
+            <strong>Voltage Drop</strong> — percent drop over a run and the
+            minimum wire size to stay within 3% / 5% (NEC 210.19, Chapter 9).
+          </li>
+          <li>
+            <strong>Conduit Fill</strong> — whether conductors fit a conduit and
+            the smallest size that passes (NEC Chapter 9, Tables 1, 4, 5).
+          </li>
+          <li>
+            <strong>Conduit Bending</strong> — offsets, three- and four-point
+            saddles, and 90° stub-ups.
+          </li>
+          <li>
+            <strong>Box Fill</strong> — required cubic inches versus box volume
+            (NEC 314.16).
+          </li>
+          <li>
+            <strong>Wire Ampacity</strong> — allowable ampacity with ambient and
+            bundling derating and termination limits (NEC 310.16, 310.15).
+          </li>
+        </ul>
+        <h2>Pricing</h2>
+        <p>
+          The calculators are free. Codewire Pro ($6/month or $45/year, 7-day
+          free trial) adds unlimited saved jobs, cloud sync across devices, and
+          PDF report export.
+        </p>
+        <p>
+          Codewire works offline and installs to your phone's home screen.
+          Always verify results against the NEC edition adopted by your local
+          authority having jurisdiction (AHJ).
+        </p>
+      </main>
+    </div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

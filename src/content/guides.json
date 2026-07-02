@@ -1,0 +1,90 @@
+[
+  {
+    "slug": "voltage-drop",
+    "path": "/voltage-drop-guide",
+    "title": "How to Calculate Voltage Drop (NEC Guide) — Codewire",
+    "description": "A practical guide to calculating voltage drop per the NEC: the formula, copper vs aluminum, the 3% / 5% limits, a worked example, and how to fix excessive drop.",
+    "h1": "How to Calculate Voltage Drop",
+    "calcPath": "/voltage-drop",
+    "calcLabel": "Open the free Voltage Drop Calculator →",
+    "html": "<p>Voltage drop is the loss of voltage as current travels along a conductor. On long runs it can leave equipment with too little voltage to operate correctly. This guide covers how electricians calculate it in the field.</p><h2>The voltage drop formula</h2><p>The common field method uses the conductor's circular-mil area:</p><ul><li><strong>Single-phase:</strong> VD = (2 × K × I × L) ÷ CM</li><li><strong>Three-phase:</strong> VD = (1.732 × K × I × L) ÷ CM</li></ul><p>Where <strong>K</strong> is the resistivity constant (about 12.9 for copper, 21.2 for aluminum), <strong>I</strong> is the load current in amps, <strong>L</strong> is the one-way length of the run in feet, and <strong>CM</strong> is the conductor's circular-mil area (NEC Chapter 9, Table 8).</p><h2>What is the limit?</h2><p>The NEC recommends (in the informational notes to 210.19 and 215.2) a maximum 3% voltage drop on a branch circuit and 5% total for feeder plus branch. They are recommendations, but most designers and inspectors treat them as targets.</p><h2>Worked example</h2><p>A 120 V, 20 A circuit on 12 AWG copper, 100 feet one-way: VD = (2 × 12.9 × 20 × 100) ÷ 6530 ≈ 7.9 V, or about 6.6% — over the 3% target. Moving up to 8 AWG brings it back within range.</p><h2>How to fix excessive voltage drop</h2><p>Increase the wire size, shorten the run, reduce the load, or use a higher system voltage. Upsizing the conductor is the most common fix — and the calculator below suggests the smallest wire size that keeps you within 3%.</p>",
+    "faq": [
+      { "q": "How do you calculate voltage drop?", "a": "For single-phase, voltage drop = 2 × K × I × L ÷ CM (K ≈ 12.9 for copper), where I is amps, L is the one-way length in feet, and CM is the conductor's circular-mil area. For three-phase, use 1.732 instead of 2." },
+      { "q": "What is the maximum voltage drop allowed by the NEC?", "a": "The NEC recommends a 3% maximum on a branch circuit and 5% total for feeder plus branch (informational notes to 210.19 and 215.2)." },
+      { "q": "How do I fix excessive voltage drop?", "a": "Increase the wire size, shorten the run, reduce the load, or raise the system voltage." }
+    ]
+  },
+  {
+    "slug": "conduit-fill",
+    "path": "/conduit-fill-guide",
+    "title": "How to Calculate Conduit Fill (NEC Chapter 9) — Codewire",
+    "description": "How to calculate conduit fill per NEC Chapter 9: the 53/31/40% rule, using Tables 1, 4, and 5, a worked example, and the fastest way to find the right conduit size.",
+    "h1": "How to Calculate Conduit Fill",
+    "calcPath": "/conduit-fill",
+    "calcLabel": "Open the free Conduit Fill Calculator →",
+    "html": "<p>Conduit fill is how much of a conduit's interior space the conductors occupy. The NEC limits it so wires can shed heat and be pulled without damage. Here's how to calculate it.</p><h2>The 53 / 31 / 40 rule</h2><p>NEC Chapter 9, Table 1 sets the maximum fill by number of conductors: <strong>53%</strong> for one conductor, <strong>31%</strong> for two, and <strong>40%</strong> for three or more.</p><h2>The three tables you need</h2><ul><li><strong>Table 1</strong> — the allowable fill percentage (above).</li><li><strong>Table 4</strong> — the interior cross-sectional area of each conduit type and size.</li><li><strong>Table 5</strong> — the cross-sectional area of each conductor by insulation and size.</li></ul><h2>How to calculate it</h2><p>Add up the area of all conductors (Table 5). Multiply the conduit's total interior area (Table 4) by the Table 1 percentage to get the allowable fill. If the conductor total is at or below the allowable area, it passes.</p><h2>Worked example</h2><p>Three 12 AWG THHN conductors (0.0133 in² each = 0.0399 in²) in 1/2\" EMT (0.304 in² total): allowable = 0.304 × 0.40 = 0.1216 in². 0.0399 is well under 0.1216, so it passes — about 13% fill.</p><h2>Does insulation type matter?</h2><p>Yes. THHN/THWN-2 and XHHW have different diameters for the same wire size, so they take up different amounts of space. Always use the area for the actual insulation you're pulling.</p>",
+    "faq": [
+      { "q": "How do you calculate conduit fill?", "a": "Add the cross-sectional area of all conductors (NEC Chapter 9, Table 5), then compare it to the conduit's interior area (Table 4) times the Table 1 limit for the number of conductors." },
+      { "q": "What is the maximum conduit fill percentage?", "a": "Per NEC Chapter 9, Table 1: 53% for one conductor, 31% for two, and 40% for three or more conductors." },
+      { "q": "Does conduit fill depend on wire insulation type?", "a": "Yes — different insulations have different diameters for the same wire size, so they occupy different space. Codewire accounts for the insulation type you select." }
+    ]
+  },
+  {
+    "slug": "vs-uglys",
+    "path": "/codewire-vs-uglys",
+    "title": "Codewire vs Ugly's Electrical References — Codewire",
+    "description": "How Codewire's free NEC calculators compare to Ugly's Electrical References: speed, always-current data, saving jobs, and cost.",
+    "h1": "Codewire vs Ugly's Electrical References",
+    "calcPath": "/",
+    "calcLabel": "Try the free calculators →",
+    "html": "<p>Ugly's Electrical References is the pocket book generations of electricians have carried, and it's a great reference. But it's paper. Here's an honest comparison for the day-to-day calculations.</p><h2>Speed</h2><p>With a book you look up tables and do the math by hand. Codewire computes voltage drop, conduit fill, box fill, wire ampacity, and bends as you type — usually faster than flipping pages, with an instant pass/fail.</p><h2>Always current</h2><p>A printed reference is a snapshot of one code cycle. Codewire's data is built around the NEC and updated digitally, structured so new editions can be added.</p><h2>It saves your work</h2><p>A book can't remember a calculation. Codewire lets you save results to a job (address, notes) and, with Pro, sync across devices and export a PDF report for the file.</p><h2>Cost</h2><p>Ugly's is a one-time purchase. Codewire's calculators are <strong>free</strong>; Pro (cloud sync, unlimited jobs, PDF export) is $6/month or $45/year.</p><h2>The honest take</h2><p>Keep Ugly's in your bag — it never needs a battery. But for fast, repeatable calculations you can save to a job, Codewire is built for the phone already in your pocket. Either way, always verify against the code edition adopted by your local AHJ.</p>",
+    "faq": [
+      { "q": "Is Codewire free?", "a": "Yes — all five calculators are free with up to two saved jobs. Codewire Pro ($6/month or $45/year) adds unlimited jobs, cloud sync, and PDF export." },
+      { "q": "Does Codewire replace the NEC code book?", "a": "No. Codewire is a field aid for calculations; always verify against the printed code and the edition adopted by your authority having jurisdiction (AHJ)." }
+    ]
+  },
+  {
+    "slug": "wire-size",
+    "path": "/wire-size-chart",
+    "title": "What Size Wire Do I Need? NEC Wire Size Chart by Amperage — Codewire",
+    "description": "NEC wire size chart by amperage for copper and aluminum (75°C). Find what size wire you need for 20, 30, 50, 100, or 200 amps, plus how derating, terminations, and voltage drop change the answer.",
+    "h1": "What Size Wire Do I Need? (NEC Wire Size Chart)",
+    "calcPath": "/ampacity",
+    "calcLabel": "Open the free Wire Ampacity Calculator →",
+    "html": "<p>The wire size you need depends mainly on the current (amps) the circuit carries and the conductor material. The chart below lists common minimum sizes from the 75°C column of NEC Table 310.16 — the column most terminations use.</p><table><thead><tr><th>Amps</th><th>Copper (75°C)</th><th>Aluminum (75°C)</th></tr></thead><tbody><tr><td>15 A</td><td>14 AWG</td><td>—</td></tr><tr><td>20 A</td><td>12 AWG</td><td>—</td></tr><tr><td>30 A</td><td>10 AWG</td><td>10 AWG</td></tr><tr><td>40 A</td><td>8 AWG</td><td>8 AWG</td></tr><tr><td>50 A</td><td>8 AWG</td><td>6 AWG</td></tr><tr><td>60 A</td><td>6 AWG</td><td>4 AWG</td></tr><tr><td>100 A</td><td>3 AWG</td><td>1 AWG</td></tr><tr><td>200 A</td><td>3/0 AWG</td><td>250 kcmil</td></tr></tbody></table><h2>Three things that change the answer</h2><ul><li><strong>Derating:</strong> high ambient temperature or more than three current-carrying conductors in a raceway lowers capacity — you may need to go up a size.</li><li><strong>Terminations (110.14(C)):</strong> most breakers and lugs are rated 60°C or 75°C, so you generally can't use the higher 90°C ampacity even with 90°C-rated wire.</li><li><strong>Voltage drop:</strong> on long runs, upsize to keep drop within about 3%.</li></ul><h2>Dwelling services and feeders</h2><p>For an individual dwelling's main service or feeder, NEC 310.12 permits somewhat smaller conductors (for example, a 200 A service commonly uses 2/0 copper or 4/0 aluminum). Use that section for those specific cases.</p><p>Always confirm the final size with the ampacity calculator after entering your actual ambient temperature and conductor count.</p>",
+    "faq": [
+      { "q": "What size wire do I need for 50 amps?", "a": "Per NEC Table 310.16 (75°C column), 50 amps needs 8 AWG copper or 6 AWG aluminum, before derating. Confirm terminations are 75°C-rated and apply derating for heat or bundling." },
+      { "q": "What size wire for a 100 amp subpanel?", "a": "From the 75°C column, 100 amps needs 3 AWG copper or 1 AWG aluminum. Many installers go larger for margin and voltage drop. A dwelling feeder may use smaller per NEC 310.12." },
+      { "q": "Does wire size depend on copper vs aluminum?", "a": "Yes. Aluminum carries less current per size, so it generally needs to be one to two sizes larger than copper for the same amperage." }
+    ]
+  },
+  {
+    "slug": "box-fill",
+    "path": "/box-fill-guide",
+    "title": "How to Calculate Box Fill (NEC 314.16) — Codewire",
+    "description": "How to calculate electrical box fill per NEC 314.16: the cubic-inch allowance per wire size, how to count conductors, devices, clamps and grounds, and a worked example.",
+    "h1": "How to Calculate Box Fill",
+    "calcPath": "/box-fill",
+    "calcLabel": "Open the free Box Fill Calculator →",
+    "html": "<p>Box fill makes sure a junction or device box is big enough for everything inside it, so wires aren't crammed and overheating. NEC 314.16 turns each item into a volume allowance you total against the box's cubic inches.</p><h2>Volume allowance per conductor</h2><table><thead><tr><th>Wire size</th><th>Allowance</th></tr></thead><tbody><tr><td>14 AWG</td><td>2.00 in³</td></tr><tr><td>12 AWG</td><td>2.25 in³</td></tr><tr><td>10 AWG</td><td>2.50 in³</td></tr><tr><td>8 AWG</td><td>3.00 in³</td></tr><tr><td>6 AWG</td><td>5.00 in³</td></tr></tbody></table><h2>How to count everything (314.16(B))</h2><ul><li><strong>Each conductor</strong> entering and terminating (or passing through) = 1 allowance for its size.</li><li><strong>Each device (yoke/strap)</strong> = 2 allowances of the largest conductor connected to it.</li><li><strong>All internal cable clamps</strong> together = 1 allowance of the largest conductor.</li><li><strong>All equipment grounds</strong> together = 1 allowance of the largest ground.</li></ul><h2>Worked example</h2><p>A device box with three 12 AWG conductors, one receptacle, internal clamps, and one 12 AWG ground: (3 × 2.25) + (2 × 2.25) + 2.25 + 2.25 = 15.75 in³. That fits an 18 in³ box.</p>",
+    "faq": [
+      { "q": "How do you calculate box fill?", "a": "Add the Table 314.16(B) allowance for each conductor, plus two allowances per device yoke (largest conductor), one for all clamps, and one for all equipment grounds. Compare the total to the box's cubic-inch volume." },
+      { "q": "How many cubic inches does a 12 AWG wire need?", "a": "2.25 cubic inches per 12 AWG conductor. 14 AWG needs 2.00, 10 AWG needs 2.50." },
+      { "q": "Do ground wires count in box fill?", "a": "Yes — all equipment grounding conductors together count as one allowance of the largest ground present." }
+    ]
+  },
+  {
+    "slug": "bending",
+    "path": "/conduit-bending-guide",
+    "title": "How to Bend Conduit: Offsets, Saddles & Multipliers — Codewire",
+    "description": "How to bend conduit: offset multipliers (10°, 22.5°, 30°, 45°, 60°), shrink, three- and four-point saddles, and 90° stub-up take-up, with the formulas electricians use.",
+    "h1": "How to Bend Conduit (Offsets, Saddles & Stubs)",
+    "calcPath": "/conduit-bending",
+    "calcLabel": "Open the free Conduit Bending Calculator →",
+    "html": "<p>Bending conduit cleanly comes down to a few numbers: the multiplier for your bend angle, the shrink, and the take-up for 90° stubs. Here are the formulas electricians use.</p><h2>Offset multipliers</h2><p>Distance between the two bends = offset height × the multiplier for the angle:</p><table><thead><tr><th>Angle</th><th>Multiplier</th><th>Shrink / inch</th></tr></thead><tbody><tr><td>10°</td><td>6.0</td><td>1/16\"</td></tr><tr><td>22.5°</td><td>2.6</td><td>3/16\"</td></tr><tr><td>30°</td><td>2.0</td><td>1/4\"</td></tr><tr><td>45°</td><td>1.4</td><td>3/8\"</td></tr><tr><td>60°</td><td>1.2</td><td>1/2\"</td></tr></tbody></table><p>These are the common field multipliers; Codewire's calculator uses the exact trig values, so its numbers may differ by a hair.</p><h2>Offsets</h2><p>To clear an obstacle, multiply the offset height by the multiplier to get the distance between your two bend marks. A lower angle gives a longer, gentler offset with less shrink; a higher angle is tighter but shrinks more.</p><h2>Saddles</h2><p>A three-point saddle crosses an obstruction with a center bend (commonly 45°) and two outer bends (22.5°). A four-point saddle is two offsets back-to-back for a wider obstacle.</p><h2>90° stub-up</h2><p>Mark = desired stub height − the take-up for the conduit size (about 5\" for 1/2\", 6\" for 3/4\", 8\" for 1\").</p>",
+    "faq": [
+      { "q": "What is the multiplier for a 30 degree offset?", "a": "2.0 — the distance between bends is twice the offset height (1 ÷ sin 30° = 2.0)." },
+      { "q": "How do you calculate conduit shrink?", "a": "Shrink is roughly the offset height times the per-inch shrink for the angle — about 1/4\" per inch of rise at 30°." }
+    ]
+  }
+]

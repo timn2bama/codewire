@@ -1,0 +1,22 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "rewrites": [
+    { "source": "/voltage-drop", "destination": "/voltage-drop.html" },
+    { "source": "/conduit-fill", "destination": "/conduit-fill.html" },
+    { "source": "/ampacity", "destination": "/ampacity.html" },
+    { "source": "/box-fill", "destination": "/box-fill.html" },
+    { "source": "/conduit-bending", "destination": "/conduit-bending.html" },
+    { "source": "/about", "destination": "/about.html" },
+    { "source": "/upgrade", "destination": "/upgrade.html" },
+    { "source": "/voltage-drop-guide", "destination": "/voltage-drop-guide.html" },
+    { "source": "/conduit-fill-guide", "destination": "/conduit-fill-guide.html" },
+    { "source": "/codewire-vs-uglys", "destination": "/codewire-vs-uglys.html" },
+    { "source": "/wire-size-chart", "destination": "/wire-size-chart.html" },
+    { "source": "/box-fill-guide", "destination": "/box-fill-guide.html" },
+    { "source": "/conduit-bending-guide", "destination": "/conduit-bending-guide.html" },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ]
+}

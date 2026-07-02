@@ -1,0 +1,40 @@
+# Codewire — crawlers welcome, including AI/LLM crawlers.
+User-agent: *
+Allow: /
+
+# AI / LLM crawlers explicitly allowed
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+# Keep private/app-internal routes out of the index
+Disallow: /account
+Disallow: /jobs
+
+Sitemap: https://codewire.tools/sitemap.xml

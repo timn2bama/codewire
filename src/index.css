@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  @apply bg-slate-950 text-slate-100 antialiased;
+  /* respect device notches */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right)
+    env(safe-area-inset-bottom) env(safe-area-inset-left);
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    padding: 0;
+    background: #fff;
+  }
+}
+
+/* SEO guide article content (rendered from HTML) */
+@layer components {
+  .guide-content h2 {
+    @apply mb-2 mt-6 text-lg font-bold text-slate-100;
+  }
+  .guide-content p {
+    @apply mb-3 leading-relaxed text-slate-300;
+  }
+  .guide-content ul {
+    @apply mb-3 list-disc space-y-1 pl-5 text-slate-300;
+  }
+  .guide-content strong {
+    @apply text-slate-100;
+  }
+  .guide-content table {
+    @apply mb-4 w-full border-collapse text-sm;
+  }
+  .guide-content th {
+    @apply border-b border-slate-700 py-2 pr-3 text-left font-semibold text-slate-200;
+  }
+  .guide-content td {
+    @apply border-b border-slate-800 py-2 pr-3 text-slate-300;
+  }
+}
+
+/* Large, glove-friendly numeric inputs */
+@layer components {
+  .field-label {
+    @apply mb-1 block text-sm font-medium text-slate-400;
+  }
+  .field-input {
+    @apply w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-lg
+      text-slate-100 outline-none transition focus:border-brand focus:ring-2
+      focus:ring-brand/40;
+  }
+  .field-select {
+    @apply field-input appearance-none;
+  }
+  .seg-btn {
+    @apply flex-1 rounded-lg px-3 py-2.5 text-center text-sm font-semibold transition;
+  }
+  .seg-btn-on {
+    @apply bg-brand text-white;
+  }
+  .seg-btn-off {
+    @apply bg-slate-800 text-slate-300 active:bg-slate-700;
+  }
+}

@@ -1,0 +1,26 @@
+# Codewire
+
+> Codewire is a field reference web app (PWA) for electricians that combines the five most-used National Electrical Code (NEC) calculators into one fast, offline, mobile-first tool. It replaces juggling several separate apps and a paper code book on the job, and gives an instant pass/fail against the code.
+
+Site: https://codewire.tools
+
+## What it does
+- **Voltage Drop** — percent voltage drop over a run and the minimum wire size to stay within 3% (branch) / 5% (total). NEC 210.19, Chapter 9.
+- **Conduit Fill** — whether a set of conductors fits a conduit, and the smallest conduit that passes. NEC Chapter 9, Tables 1, 4, 5 (EMT, IMC, RMC, PVC 40/80, ENT, FMC, LFMC; THHN/THWN-2 and XHHW).
+- **Conduit Bending** — offsets, three- and four-point saddles, and 90° stub-ups (geometry).
+- **Box Fill** — required cubic inches versus box volume. NEC 314.16.
+- **Wire Ampacity** — allowable ampacity with ambient-temperature and conductor-bundling derating plus termination-temperature limits. NEC 310.16, 310.15.
+
+## Key facts
+- Works fully offline; installable to a phone home screen.
+- Live recalculation as you type; reverse-solve for the correct wire/conduit size.
+- Save calculations to named jobs (address, phone, notes); Pro adds cloud sync across devices and PDF report export.
+- NEC 2023 edition data, structured so future editions can be added.
+- Audience: licensed electricians and apprentices.
+
+## Pricing
+- Free: all five calculators, up to 2 saved jobs on-device.
+- Codewire Pro: $6/month or $45/year (about 38% off), 7-day free trial. Adds unlimited jobs, cloud sync, and PDF export.
+
+## Important
+Codewire is a field aid, not a substitute for the printed code book, training, or a licensed inspection. Always verify against the NEC edition adopted by the local authority having jurisdiction (AHJ).
