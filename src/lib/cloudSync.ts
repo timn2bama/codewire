@@ -121,17 +121,42 @@ export async function pull() {
   );
 }
 
+/** Thrown when a cloud write is rejected because the account isn't Pro. */
+export class ProRequiredError extends Error {
+  constructor() {
+    super("Cloud sync requires Codewire Pro.");
+    this.name = "ProRequiredError";
+  }
+}
+
+// Postgres RLS rejects a with-check violation with code 42501 (and PostgREST
+// surfaces it as such). Treat that on a write as "not entitled to sync".
+function isProRejection(error: { code?: string } | null): boolean {
+  return error?.code === "42501";
+}
+
 export async function push(userId: string) {
   if (!supabase) return;
   const jobs = getAllJobs();
   const calcs = getAllCalcs();
 
-  if (jobs.length)
-    await supabase.from("jobs").upsert(jobs.map((j) => jobToRow(j, userId)));
-  if (calcs.length)
-    await supabase
+  // Writes (insert/update) are Pro-gated in the database (RLS). Check the result
+  // and bail before the delete phase if the account isn't entitled, so a
+  // non-Pro client can't diverge local and cloud state.
+  if (jobs.length) {
+    const { error } = await supabase
+      .from("jobs")
+      .upsert(jobs.map((j) => jobToRow(j, userId)));
+    if (isProRejection(error)) throw new ProRequiredError();
+    if (error) throw error;
+  }
+  if (calcs.length) {
+    const { error } = await supabase
       .from("saved_calcs")
       .upsert(calcs.map((c) => calcToRow(c, userId)));
+    if (isProRejection(error)) throw new ProRequiredError();
+    if (error) throw error;
+  }
 
   // Mirror deletes: remove cloud rows that no longer exist locally.
   const localJobIds = new Set(jobs.map((j) => j.id));

@@ -33,6 +33,22 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
 
+-- Pro entitlement helper: true when the user's subscription is active/trialing.
+-- Used by the jobs/saved_calcs WRITE policies so the paywall is enforced in the
+-- database, not just the client. SECURITY DEFINER so it can read profiles.status.
+create or replace function public.is_pro(uid uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1 from public.profiles p
+    where p.id = uid and p.status in ('active', 'trialing')
+  );
+$$;
+
 -- 2) JOBS: cloud copy of on-device jobs (Pro sync). Client-generated text ids
 --    so local and cloud rows line up. `deleted` is a tombstone for sync.
 create table if not exists public.jobs (
@@ -52,9 +68,16 @@ create table if not exists public.jobs (
 );
 
 alter table public.jobs enable row level security;
-create policy "jobs_all_own"
-  on public.jobs for all
-  using (auth.uid() = user_id) with check (auth.uid() = user_id);
+-- Read/delete: any owner. Insert/update (the paid cloud-sync write): Pro only.
+create policy "jobs_select_own" on public.jobs
+  for select using (auth.uid() = user_id);
+create policy "jobs_delete_own" on public.jobs
+  for delete using (auth.uid() = user_id);
+create policy "jobs_insert_pro" on public.jobs
+  for insert with check (auth.uid() = user_id and public.is_pro(auth.uid()));
+create policy "jobs_update_pro" on public.jobs
+  for update using (auth.uid() = user_id)
+  with check (auth.uid() = user_id and public.is_pro(auth.uid()));
 
 -- 3) SAVED_CALCS: cloud copy of saved calculations.
 create table if not exists public.saved_calcs (
@@ -73,6 +96,13 @@ create table if not exists public.saved_calcs (
 );
 
 alter table public.saved_calcs enable row level security;
-create policy "saved_calcs_all_own"
-  on public.saved_calcs for all
-  using (auth.uid() = user_id) with check (auth.uid() = user_id);
+-- Read/delete: any owner. Insert/update (the paid cloud-sync write): Pro only.
+create policy "saved_calcs_select_own" on public.saved_calcs
+  for select using (auth.uid() = user_id);
+create policy "saved_calcs_delete_own" on public.saved_calcs
+  for delete using (auth.uid() = user_id);
+create policy "saved_calcs_insert_pro" on public.saved_calcs
+  for insert with check (auth.uid() = user_id and public.is_pro(auth.uid()));
+create policy "saved_calcs_update_pro" on public.saved_calcs
+  for update using (auth.uid() = user_id)
+  with check (auth.uid() = user_id and public.is_pro(auth.uid()));
