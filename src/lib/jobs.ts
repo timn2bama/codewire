@@ -51,8 +51,15 @@ export interface SavedCalc {
   updatedAt: number;
 }
 
+export interface DeletedMarker {
+  id: string;
+  updatedAt: number;
+}
+
 const JOBS_KEY = "cw:jobs";
 const CALCS_KEY = "cw:saved-calcs";
+const DELETED_JOBS_KEY = "cw:deleted-jobs";
+const DELETED_CALCS_KEY = "cw:deleted-calcs";
 
 const listeners = new Set<() => void>();
 function emit() {
@@ -70,6 +77,8 @@ function read<T>(key: string): T[] {
 // Cached snapshots so useSyncExternalStore gets stable references.
 let jobsCache: Job[] | null = null;
 let calcsCache: SavedCalc[] | null = null;
+let deletedJobsCache: DeletedMarker[] | null = null;
+let deletedCalcsCache: DeletedMarker[] | null = null;
 
 function getJobs(): Job[] {
   if (jobsCache === null) jobsCache = read<Job>(JOBS_KEY);
@@ -78,6 +87,16 @@ function getJobs(): Job[] {
 function getCalcs(): SavedCalc[] {
   if (calcsCache === null) calcsCache = read<SavedCalc>(CALCS_KEY);
   return calcsCache;
+}
+function getDeletedJobs(): DeletedMarker[] {
+  if (deletedJobsCache === null)
+    deletedJobsCache = read<DeletedMarker>(DELETED_JOBS_KEY);
+  return deletedJobsCache;
+}
+function getDeletedCalcs(): DeletedMarker[] {
+  if (deletedCalcsCache === null)
+    deletedCalcsCache = read<DeletedMarker>(DELETED_CALCS_KEY);
+  return deletedCalcsCache;
 }
 
 function writeJobs(next: Job[]) {
@@ -89,6 +108,18 @@ function writeCalcs(next: SavedCalc[]) {
   calcsCache = next;
   localStorage.setItem(CALCS_KEY, JSON.stringify(next));
   emit();
+}
+function writeDeletedJobs(next: DeletedMarker[]) {
+  deletedJobsCache = next;
+  localStorage.setItem(DELETED_JOBS_KEY, JSON.stringify(next));
+}
+function writeDeletedCalcs(next: DeletedMarker[]) {
+  deletedCalcsCache = next;
+  localStorage.setItem(DELETED_CALCS_KEY, JSON.stringify(next));
+}
+
+function upsertMarker(markers: DeletedMarker[], marker: DeletedMarker) {
+  return [marker, ...markers.filter((item) => item.id !== marker.id)];
 }
 
 function uid(): string {
@@ -113,6 +144,15 @@ export function updateJob(id: string, patch: Partial<JobInput>) {
 }
 
 export function deleteJob(id: string) {
+  const now = Date.now();
+  const childCalcs = getCalcs().filter((c) => c.jobId === id);
+  writeDeletedJobs(upsertMarker(getDeletedJobs(), { id, updatedAt: now }));
+  writeDeletedCalcs(
+    childCalcs.reduce(
+      (markers, calc) => upsertMarker(markers, { id: calc.id, updatedAt: now }),
+      getDeletedCalcs(),
+    ),
+  );
   writeJobs(getJobs().filter((j) => j.id !== id));
   writeCalcs(getCalcs().filter((c) => c.jobId !== id));
 }
@@ -127,6 +167,9 @@ export function saveCalc(
 }
 
 export function deleteCalc(id: string) {
+  writeDeletedCalcs(
+    upsertMarker(getDeletedCalcs(), { id, updatedAt: Date.now() }),
+  );
   writeCalcs(getCalcs().filter((c) => c.id !== id));
 }
 
@@ -143,14 +186,67 @@ export function getAllJobs(): Job[] {
 export function getAllCalcs(): SavedCalc[] {
   return getCalcs();
 }
+export function getDeletedJobMarkers(): DeletedMarker[] {
+  return getDeletedJobs();
+}
+export function getDeletedCalcMarkers(): DeletedMarker[] {
+  return getDeletedCalcs();
+}
 
 /** Merge cloud rows into local using last-write-wins on `updatedAt`. */
-export function applyCloudData(cloudJobs: Job[], cloudCalcs: SavedCalc[]) {
-  jobsCache = mergeByUpdatedAt(getJobs(), cloudJobs);
+export function applyCloudData(
+  cloudJobs: Job[],
+  cloudCalcs: SavedCalc[],
+  cloudDeletedJobs: DeletedMarker[] = [],
+  cloudDeletedCalcs: DeletedMarker[] = [],
+) {
+  const jobsResult = mergeWithTombstones(
+    getJobs(),
+    cloudJobs,
+    getDeletedJobs(),
+    cloudDeletedJobs,
+  );
+  jobsCache = jobsResult.items;
   localStorage.setItem(JOBS_KEY, JSON.stringify(jobsCache));
-  calcsCache = mergeByUpdatedAt(getCalcs(), cloudCalcs);
+  writeDeletedJobs(jobsResult.tombstones);
+
+  const calcsResult = mergeWithTombstones(
+    getCalcs(),
+    cloudCalcs,
+    getDeletedCalcs(),
+    cloudDeletedCalcs,
+  );
+  calcsCache = calcsResult.items;
   localStorage.setItem(CALCS_KEY, JSON.stringify(calcsCache));
+  writeDeletedCalcs(calcsResult.tombstones);
   emit();
+}
+
+export function mergeWithTombstones<
+  T extends { id: string; updatedAt: number; createdAt: number },
+>(
+  local: T[],
+  cloud: T[],
+  localTombstones: DeletedMarker[],
+  cloudTombstones: DeletedMarker[],
+): { items: T[]; tombstones: DeletedMarker[] } {
+  const active = mergeByUpdatedAt(local, cloud);
+  const tombstones = new Map<string, DeletedMarker>();
+  for (const marker of [...localTombstones, ...cloudTombstones]) {
+    const existing = tombstones.get(marker.id);
+    if (!existing || marker.updatedAt > existing.updatedAt)
+      tombstones.set(marker.id, marker);
+  }
+
+  const items = active.filter((item) => {
+    const marker = tombstones.get(item.id);
+    if (!marker) return true;
+    if (marker.updatedAt >= item.updatedAt) return false;
+    tombstones.delete(item.id);
+    return true;
+  });
+
+  return { items, tombstones: [...tombstones.values()] };
 }
 
 /** Pure merge: keep the newer of each id; include ids present on either side. */

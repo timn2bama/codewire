@@ -56,8 +56,8 @@ export default function ConduitBendingPage() {
 
   let result;
   let inputs;
-  let saveSummary = "";
-  let saveResult = "";
+  let saveSummary: string;
+  let saveResult: string;
 
   if (s.mode === "offset") {
     const r = calcOffset(num(s.offsetHeight), s.angle);
