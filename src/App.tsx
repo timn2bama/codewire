@@ -15,6 +15,7 @@ import AmpacityPage from "./calculators/ampacity/AmpacityPage";
 import BoxFillPage from "./calculators/box-fill/BoxFillPage";
 import ConduitBendingPage from "./calculators/conduit-bending/ConduitBendingPage";
 import { CloudSyncManager } from "./components/CloudSyncManager";
+import { RequireAuth } from "./components/RequireAuth";
 import { Analytics } from "@vercel/analytics/react";
 
 export default function App() {
@@ -28,7 +29,15 @@ export default function App() {
         <Route path="/jobs" element={<Jobs />} />
         <Route path="/jobs/:id" element={<JobDetail />} />
         <Route path="/jobs/:id/report" element={<JobReport />} />
-        <Route path="/account" element={<Account />} />
+        <Route path="/login" element={<Account />} />
+        <Route
+          path="/account"
+          element={
+            <RequireAuth>
+              <Account />
+            </RequireAuth>
+          }
+        />
         <Route path="/upgrade" element={<Upgrade />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/privacy" element={<Privacy />} />

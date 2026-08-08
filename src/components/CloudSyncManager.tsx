@@ -16,9 +16,13 @@ export function CloudSyncManager() {
     let stop = () => {};
     let cancelled = false;
     fullSync(user.id)
-      .catch(() => {})
-      .finally(() => {
+      .then(() => {
         if (!cancelled) stop = startAutoSync(user.id);
+      })
+      .catch(() => {
+        // A failed initial pull means this device does not have an authoritative
+        // view of the cloud. Stay local-only until the effect runs again rather
+        // than starting a push-capable sync session from partial state.
       });
     return () => {
       cancelled = true;

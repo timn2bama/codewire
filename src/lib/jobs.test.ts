@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mergeByUpdatedAt, FREE_JOB_LIMIT } from "./jobs";
+import { mergeByUpdatedAt, mergeWithTombstones, FREE_JOB_LIMIT } from "./jobs";
 
 type Row = { id: string; updatedAt: number; createdAt: number; v: string };
 const row = (id: string, updatedAt: number, v: string, createdAt = updatedAt): Row => ({
@@ -44,5 +44,27 @@ describe("cloud sync merge (last-write-wins)", () => {
 
   it("free job limit is 2", () => {
     expect(FREE_JOB_LIMIT).toBe(2);
+  });
+
+  it("keeps a newer tombstone instead of resurrecting an older item", () => {
+    const result = mergeWithTombstones(
+      [],
+      [row("a", 100, "cloud")],
+      [{ id: "a", updatedAt: 200 }],
+      [],
+    );
+    expect(result.items).toEqual([]);
+    expect(result.tombstones).toEqual([{ id: "a", updatedAt: 200 }]);
+  });
+
+  it("allows a newer active edit to supersede an old tombstone", () => {
+    const result = mergeWithTombstones(
+      [row("a", 300, "local")],
+      [],
+      [],
+      [{ id: "a", updatedAt: 200 }],
+    );
+    expect(result.items[0].v).toBe("local");
+    expect(result.tombstones).toEqual([]);
   });
 });

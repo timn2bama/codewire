@@ -24,7 +24,7 @@ export default function Upgrade() {
   const go = async () => {
     setError(null);
     if (!user) {
-      navigate("/account?next=upgrade");
+      navigate("/login?next=%2Fupgrade");
       return;
     }
     try {

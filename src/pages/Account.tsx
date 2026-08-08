@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { useAuth } from "../lib/auth";
 import { useSubscription } from "../lib/subscription";
@@ -7,6 +7,7 @@ import { openBillingPortal } from "../lib/billing";
 
 export default function Account() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [params] = useSearchParams();
   const { user, cloudEnabled, signInWithPassword, signUp, signInWithGoogle, signOut } =
     useAuth();
@@ -34,8 +35,12 @@ export default function Account() {
     if (error) setMsg(error);
     else if (mode === "signup")
       setMsg("Check your email to confirm your account, then sign in.");
-    else if (params.get("next") === "upgrade") navigate("/upgrade");
+    else navigate(params.get("next") === "/upgrade" ? "/upgrade" : "/account");
   };
+
+  if (user && location.pathname === "/login") {
+    return <Navigate to="/account" replace />;
+  }
 
   return (
     <div className="mx-auto max-w-2xl px-4 pb-12 pt-4">

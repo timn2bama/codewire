@@ -11,6 +11,53 @@
 --
 -- Idempotent: safe to run more than once. Run in the Supabase SQL editor.
 
+-- Bootstrap the sync tables when replaying migrations into a fresh project.
+-- The original schema lived only in schema.sql, which made migration replay
+-- fail before this policy migration could run.
+create table if not exists public.profiles (
+  id uuid primary key references auth.users (id) on delete cascade,
+  stripe_customer_id text unique,
+  plan text,
+  status text not null default 'free',
+  current_period_end timestamptz,
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.jobs (
+  id text primary key,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  name text not null,
+  job_number text,
+  phone text,
+  notes text,
+  address text,
+  city text,
+  state text,
+  zip text,
+  created_at bigint not null,
+  updated_at bigint not null,
+  deleted boolean not null default false
+);
+
+create table if not exists public.saved_calcs (
+  id text primary key,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  job_id text not null,
+  calculator_id text not null,
+  path text not null,
+  title text not null,
+  summary text not null,
+  result text not null,
+  state jsonb not null,
+  created_at bigint not null,
+  updated_at bigint not null,
+  deleted boolean not null default false
+);
+
+alter table public.profiles enable row level security;
+alter table public.jobs enable row level security;
+alter table public.saved_calcs enable row level security;
+
 -- 1) Entitlement helper. SECURITY DEFINER so the check reads profiles.status
 --    regardless of the caller's RLS; it only ever returns a boolean.
 create or replace function public.is_pro(uid uuid)

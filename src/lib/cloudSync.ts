@@ -3,7 +3,10 @@ import {
   applyCloudData,
   getAllCalcs,
   getAllJobs,
+  getDeletedCalcMarkers,
+  getDeletedJobMarkers,
   subscribe,
+  type DeletedMarker,
   type Job,
   type SavedCalc,
 } from "./jobs";
@@ -11,7 +14,11 @@ import {
 /**
  * Pro-only cloud sync. Local storage stays the working/offline store; this
  * mirrors it to Supabase and merges remote changes back in (last-write-wins).
- * v1 limitation: a delete made while offline can reappear on the next pull.
+ *
+ * Deletion safety: v1 deliberately does not delete cloud rows. A local delete
+ * can therefore reappear on a later pull, but a failed/partial pull can never
+ * turn an empty device into an instruction to erase the user's cloud data.
+ * Proper cross-device deletes require durable tombstones on both sides.
  */
 
 type JobRow = {
@@ -27,6 +34,7 @@ type JobRow = {
   zip: string | null;
   created_at: number;
   updated_at: number;
+  deleted: boolean;
 };
 
 type CalcRow = {
@@ -41,6 +49,7 @@ type CalcRow = {
   state: unknown;
   created_at: number;
   updated_at: number;
+  deleted: boolean;
 };
 
 const n = (v: string | undefined) => v ?? null;
@@ -59,6 +68,7 @@ function jobToRow(j: Job, userId: string): JobRow {
     zip: n(j.zip),
     created_at: j.createdAt,
     updated_at: j.updatedAt,
+    deleted: false,
   };
 }
 
@@ -91,6 +101,7 @@ function calcToRow(c: SavedCalc, userId: string): CalcRow {
     state: c.state,
     created_at: c.createdAt,
     updated_at: c.updatedAt,
+    deleted: false,
   };
 }
 
@@ -111,13 +122,30 @@ function rowToCalc(r: CalcRow): SavedCalc {
 
 export async function pull() {
   if (!supabase) return;
-  const [{ data: jobRows }, { data: calcRows }] = await Promise.all([
-    supabase.from("jobs").select("*").eq("deleted", false),
-    supabase.from("saved_calcs").select("*").eq("deleted", false),
+  const [jobsResult, calcsResult] = await Promise.all([
+    supabase.from("jobs").select("*"),
+    supabase.from("saved_calcs").select("*"),
   ]);
+
+  // Never apply a partial snapshot. PostgREST returns errors alongside null
+  // data; treating null as [] would make a network/auth failure look like an
+  // authoritative empty cloud.
+  if (jobsResult.error) throw jobsResult.error;
+  if (calcsResult.error) throw calcsResult.error;
+
   applyCloudData(
-    (jobRows ?? []).map((r) => rowToJob(r as JobRow)),
-    (calcRows ?? []).map((r) => rowToCalc(r as CalcRow)),
+    (jobsResult.data ?? [])
+      .filter((r) => !(r as JobRow).deleted)
+      .map((r) => rowToJob(r as JobRow)),
+    (calcsResult.data ?? [])
+      .filter((r) => !(r as CalcRow).deleted)
+      .map((r) => rowToCalc(r as CalcRow)),
+    (jobsResult.data ?? [])
+      .filter((r) => (r as JobRow).deleted)
+      .map((r) => ({ id: (r as JobRow).id, updatedAt: (r as JobRow).updated_at })),
+    (calcsResult.data ?? [])
+      .filter((r) => (r as CalcRow).deleted)
+      .map((r) => ({ id: (r as CalcRow).id, updatedAt: (r as CalcRow).updated_at })),
   );
 }
 
@@ -139,6 +167,8 @@ export async function push(userId: string) {
   if (!supabase) return;
   const jobs = getAllJobs();
   const calcs = getAllCalcs();
+  const deletedJobs = getDeletedJobMarkers();
+  const deletedCalcs = getDeletedCalcMarkers();
 
   // Writes (insert/update) are Pro-gated in the database (RLS). Check the result
   // and bail before the delete phase if the account isn't entitled, so a
@@ -158,23 +188,23 @@ export async function push(userId: string) {
     if (error) throw error;
   }
 
-  // Mirror deletes: remove cloud rows that no longer exist locally.
-  const localJobIds = new Set(jobs.map((j) => j.id));
-  const localCalcIds = new Set(calcs.map((c) => c.id));
-  const { data: cloudJobs } = await supabase.from("jobs").select("id");
-  const { data: cloudCalcs } = await supabase.from("saved_calcs").select("id");
+  await pushTombstones("jobs", deletedJobs);
+  await pushTombstones("saved_calcs", deletedCalcs);
+}
 
-  const jobsToDelete = (cloudJobs ?? [])
-    .map((r) => r.id as string)
-    .filter((id) => !localJobIds.has(id));
-  const calcsToDelete = (cloudCalcs ?? [])
-    .map((r) => r.id as string)
-    .filter((id) => !localCalcIds.has(id));
-
-  if (jobsToDelete.length)
-    await supabase.from("jobs").delete().in("id", jobsToDelete);
-  if (calcsToDelete.length)
-    await supabase.from("saved_calcs").delete().in("id", calcsToDelete);
+async function pushTombstones(
+  table: "jobs" | "saved_calcs",
+  markers: DeletedMarker[],
+) {
+  if (!supabase) return;
+  for (const marker of markers) {
+    const { error } = await supabase
+      .from(table)
+      .update({ deleted: true, updated_at: marker.updatedAt })
+      .eq("id", marker.id);
+    if (isProRejection(error)) throw new ProRequiredError();
+    if (error) throw error;
+  }
 }
 
 export async function fullSync(userId: string) {
