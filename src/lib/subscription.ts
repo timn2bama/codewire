@@ -1,6 +1,15 @@
-import { useEffect, useState } from "react";
-import { supabase } from "./supabase";
+import {
+  createContext,
+  createElement,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import { useAuth } from "./auth";
+import { supabase } from "./supabase";
 
 export type SubStatus =
   | "free"
@@ -15,7 +24,20 @@ export interface Subscription {
   plan: string | null;
   currentPeriodEnd: string | null;
   loading: boolean;
+  /** True once the current account's entitlement request has settled. */
+  ready: boolean;
+  /** A profile-query error. Call refresh() to retry. */
+  error: string | null;
   refresh: () => void;
+}
+
+interface SubscriptionRecord {
+  userId: string;
+  nonce: number;
+  status: SubStatus;
+  plan: string | null;
+  periodEnd: string | null;
+  error: string | null;
 }
 
 /**
@@ -25,55 +47,137 @@ export interface Subscription {
  * Ignored in production builds.
  */
 function devProOverride(): boolean {
-  return import.meta.env.DEV && localStorage.getItem("cw:dev-pro") === "1";
+  if (!import.meta.env.DEV || typeof window === "undefined") return false;
+
+  try {
+    return window.localStorage.getItem("cw:dev-pro") === "1";
+  } catch {
+    return false;
+  }
 }
 
-const PRO_STATUSES: SubStatus[] = ["trialing", "active"];
+const SUB_STATUSES: readonly SubStatus[] = [
+  "free",
+  "trialing",
+  "active",
+  "canceled",
+  "past_due",
+];
+const PRO_STATUSES: readonly SubStatus[] = ["trialing", "active"];
 
-export function useSubscription(): Subscription {
+function isSubStatus(value: unknown): value is SubStatus {
+  return SUB_STATUSES.includes(value as SubStatus);
+}
+
+function getErrorMessage(error: unknown): string {
+  if (error && typeof error === "object" && "message" in error) {
+    const message = (error as { message?: unknown }).message;
+    if (typeof message === "string" && message.trim()) return message;
+  }
+  return "Unable to load subscription status.";
+}
+
+const SubscriptionContext = createContext<Subscription | null>(null);
+
+/**
+ * Owns the single subscription-profile request for the application. Keeping
+ * this above every consumer means a refresh from Account also updates cloud
+ * sync and every Pro gate without issuing independent profile queries.
+ */
+export function SubscriptionProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  const [subscription, setSubscription] = useState<{
-    userId: string;
-    status: SubStatus;
-    plan: string | null;
-    periodEnd: string | null;
-  } | null>(null);
+  const [record, setRecord] = useState<SubscriptionRecord | null>(null);
   const [nonce, setNonce] = useState(0);
 
   useEffect(() => {
     if (!supabase || !user) return;
+
+    const userId = user.id;
+    const requestNonce = nonce;
     let active = true;
-    supabase
-      .from("profiles")
-      .select("status, plan, current_period_end")
-      .eq("id", user.id)
-      .single()
-      .then(({ data }) => {
+
+    void (async () => {
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("status, plan, current_period_end")
+          .eq("id", userId)
+          .single();
+
         if (!active) return;
-        setSubscription({
-          userId: user.id,
-          status: (data?.status as SubStatus) ?? "free",
-          plan: data?.plan ?? null,
-          periodEnd: data?.current_period_end ?? null,
+        if (error) {
+          setRecord({
+            userId,
+            nonce: requestNonce,
+            status: "free",
+            plan: null,
+            periodEnd: null,
+            error: getErrorMessage(error),
+          });
+          return;
+        }
+
+        setRecord({
+          userId,
+          nonce: requestNonce,
+          status: isSubStatus(data?.status) ? data.status : "free",
+          plan: typeof data?.plan === "string" ? data.plan : null,
+          periodEnd:
+            typeof data?.current_period_end === "string"
+              ? data.current_period_end
+              : null,
+          error: null,
         });
-      });
+      } catch (error) {
+        if (!active) return;
+        setRecord({
+          userId,
+          nonce: requestNonce,
+          status: "free",
+          plan: null,
+          periodEnd: null,
+          error: getErrorMessage(error),
+        });
+      }
+    })();
+
     return () => {
       active = false;
     };
   }, [user, nonce]);
 
-  // Never show one account's cached entitlement for another account (or after
-  // sign-out) while the current profile request is in flight.
-  const current = user && subscription?.userId === user.id ? subscription : null;
+  const refresh = useCallback(() => setNonce((current) => current + 1), []);
+  const current = user && record?.userId === user.id ? record : null;
+  const loading = Boolean(
+    supabase && user && (!current || current.nonce !== nonce),
+  );
   const status = current?.status ?? "free";
+  const error = current?.nonce === nonce ? current.error : null;
   const isPro = devProOverride() || PRO_STATUSES.includes(status);
 
-  return {
-    isPro,
-    status,
-    plan: current?.plan ?? null,
-    currentPeriodEnd: current?.periodEnd ?? null,
-    loading: Boolean(supabase && user && !current),
-    refresh: () => setNonce((n) => n + 1),
-  };
+  const value = useMemo<Subscription>(
+    () => ({
+      isPro,
+      status,
+      plan: current?.plan ?? null,
+      currentPeriodEnd: current?.periodEnd ?? null,
+      loading,
+      ready: !loading,
+      error,
+      refresh,
+    }),
+    [current?.periodEnd, current?.plan, error, isPro, loading, refresh, status],
+  );
+
+  return createElement(SubscriptionContext.Provider, { value }, children);
+}
+
+export function useSubscription(): Subscription {
+  const subscription = useContext(SubscriptionContext);
+  if (!subscription) {
+    throw new Error(
+      "useSubscription must be used within <SubscriptionProvider>",
+    );
+  }
+  return subscription;
 }

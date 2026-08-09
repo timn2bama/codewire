@@ -42,6 +42,15 @@ describe("cloud sync merge (last-write-wins)", () => {
     expect(merged.map((r) => r.id)).toEqual(["new", "old"]);
   });
 
+  it("resolves equal-timestamp cross-tab edits deterministically", () => {
+    const left = [row("a", 100, "left")];
+    const right = [row("a", 100, "right")];
+
+    expect(mergeByUpdatedAt(left, right, false, true)).toEqual(
+      mergeByUpdatedAt(right, left, false, true),
+    );
+  });
+
   it("free job limit is 2", () => {
     expect(FREE_JOB_LIMIT).toBe(2);
   });
