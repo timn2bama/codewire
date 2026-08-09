@@ -1,34 +1,48 @@
 import { useEffect } from "react";
 import { useAuth } from "../lib/auth";
 import { useSubscription } from "../lib/subscription";
-import { fullSync, startAutoSync } from "../lib/cloudSync";
+import { createSyncController } from "../lib/cloudSync";
+import {
+  activateSyncStatus,
+  markSyncError,
+  markSyncPending,
+  markSyncing,
+  markSyncSuccess,
+  registerSyncRetry,
+  setLocalOnlyStatus,
+} from "../lib/syncStatus";
 
-/**
- * Mounts once at the app root. When a Pro user is signed in, it does an initial
- * full sync and then keeps the cloud mirrored to local edits. No-op otherwise.
- */
+/** Mounts the single serialized Pro cloud-sync session for the active user. */
 export function CloudSyncManager() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { isPro } = useSubscription();
+  const userId = user?.id;
 
   useEffect(() => {
-    if (!user || !isPro) return;
-    let stop = () => {};
-    let cancelled = false;
-    fullSync(user.id)
-      .then(() => {
-        if (!cancelled) stop = startAutoSync(user.id);
-      })
-      .catch(() => {
-        // A failed initial pull means this device does not have an authoritative
-        // view of the cloud. Stay local-only until the effect runs again rather
-        // than starting a push-capable sync session from partial state.
-      });
+    if (authLoading) return;
+
+    if (!userId || !isPro) {
+      setLocalOnlyStatus();
+      return;
+    }
+
+    activateSyncStatus(userId);
+    const controller = createSyncController(userId, {
+      onPending: markSyncPending,
+      onStart: markSyncing,
+      onSuccess: () => markSyncSuccess(),
+      onError: markSyncError,
+    });
+    registerSyncRetry(controller.retry);
+    void controller.initialSync().catch(() => {
+      // The recovery UI exposes the failure and owns the manual retry path.
+    });
+
     return () => {
-      cancelled = true;
-      stop();
+      registerSyncRetry(null);
+      controller.stop();
     };
-  }, [user, isPro]);
+  }, [authLoading, userId, isPro]);
 
   return null;
 }

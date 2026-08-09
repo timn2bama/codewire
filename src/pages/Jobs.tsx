@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { ChevronLeft, FolderOpen, Briefcase, Search } from "lucide-react";
 import { formatAddress, useJobs, useSavedCalcs } from "../lib/jobs";
+import { SyncAndBackupPanel } from "../components/SyncAndBackupPanel";
 
 export default function Jobs() {
   const jobs = useJobs();
@@ -43,6 +44,8 @@ export default function Jobs() {
         </Link>
         <h1 className="text-xl font-bold">Saved Jobs</h1>
       </header>
+
+      <SyncAndBackupPanel />
 
       {jobs.length > 0 && (
         <div className="relative mb-4">

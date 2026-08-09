@@ -6,19 +6,17 @@ import {
   getDeletedCalcMarkers,
   getDeletedJobMarkers,
   subscribe,
-  type DeletedMarker,
   type Job,
   type SavedCalc,
 } from "./jobs";
+import { parseCalculatorState } from "./dataBackup";
 
 /**
  * Pro-only cloud sync. Local storage stays the working/offline store; this
  * mirrors it to Supabase and merges remote changes back in (last-write-wins).
  *
- * Deletion safety: v1 deliberately does not delete cloud rows. A local delete
- * can therefore reappear on a later pull, but a failed/partial pull can never
- * turn an empty device into an instruction to erase the user's cloud data.
- * Proper cross-device deletes require durable tombstones on both sides.
+ * Deletions are mirrored as durable tombstones. A failed or partial pull is
+ * never applied, so an empty response cannot erase or resurrect device data.
  */
 
 type JobRow = {
@@ -98,7 +96,12 @@ function calcToRow(c: SavedCalc, userId: string): CalcRow {
     title: c.title,
     summary: c.summary,
     result: c.result,
-    state: c.state,
+    state: parseCalculatorState(
+      c.calculatorId,
+      c.path,
+      c.state,
+      `saved calculation ${c.id}`,
+    ),
     created_at: c.createdAt,
     updated_at: c.updatedAt,
     deleted: false,
@@ -114,13 +117,31 @@ function rowToCalc(r: CalcRow): SavedCalc {
     title: r.title,
     summary: r.summary,
     result: r.result,
-    state: r.state,
+    state: parseCalculatorState(
+      r.calculator_id,
+      r.path,
+      r.state,
+      `cloud calculation ${r.id}`,
+    ),
     createdAt: r.created_at,
     updatedAt: r.updated_at,
   };
 }
 
-export async function pull() {
+function applyRows(jobRows: JobRow[], calcRows: CalcRow[]) {
+  applyCloudData(
+    jobRows.filter((row) => !row.deleted).map(rowToJob),
+    calcRows.filter((row) => !row.deleted).map(rowToCalc),
+    jobRows
+      .filter((row) => row.deleted)
+      .map((row) => ({ id: row.id, updatedAt: row.updated_at })),
+    calcRows
+      .filter((row) => row.deleted)
+      .map((row) => ({ id: row.id, updatedAt: row.updated_at })),
+  );
+}
+
+export async function pull(shouldApply: () => boolean = () => true) {
   if (!supabase) return;
   const [jobsResult, calcsResult] = await Promise.all([
     supabase.from("jobs").select("*"),
@@ -132,21 +153,9 @@ export async function pull() {
   // authoritative empty cloud.
   if (jobsResult.error) throw jobsResult.error;
   if (calcsResult.error) throw calcsResult.error;
+  if (!shouldApply()) return;
 
-  applyCloudData(
-    (jobsResult.data ?? [])
-      .filter((r) => !(r as JobRow).deleted)
-      .map((r) => rowToJob(r as JobRow)),
-    (calcsResult.data ?? [])
-      .filter((r) => !(r as CalcRow).deleted)
-      .map((r) => rowToCalc(r as CalcRow)),
-    (jobsResult.data ?? [])
-      .filter((r) => (r as JobRow).deleted)
-      .map((r) => ({ id: (r as JobRow).id, updatedAt: (r as JobRow).updated_at })),
-    (calcsResult.data ?? [])
-      .filter((r) => (r as CalcRow).deleted)
-      .map((r) => ({ id: (r as CalcRow).id, updatedAt: (r as CalcRow).updated_at })),
-  );
+  applyRows(jobsResult.data as JobRow[], calcsResult.data as CalcRow[]);
 }
 
 /** Thrown when a cloud write is rejected because the account isn't Pro. */
@@ -163,71 +172,266 @@ function isProRejection(error: { code?: string } | null): boolean {
   return error?.code === "42501";
 }
 
-export async function push(userId: string) {
+export async function push(
+  userId: string,
+  shouldApply: () => boolean = () => true,
+) {
   if (!supabase) return;
   const jobs = getAllJobs();
   const calcs = getAllCalcs();
   const deletedJobs = getDeletedJobMarkers();
   const deletedCalcs = getDeletedCalcMarkers();
 
-  // Writes (insert/update) are Pro-gated in the database (RLS). Check the result
-  // and bail before the delete phase if the account isn't entitled, so a
-  // non-Pro client can't diverge local and cloud state.
-  if (jobs.length) {
-    const { error } = await supabase
-      .from("jobs")
-      .upsert(jobs.map((j) => jobToRow(j, userId)));
-    if (isProRejection(error)) throw new ProRequiredError();
-    if (error) throw error;
-  }
-  if (calcs.length) {
-    const { error } = await supabase
-      .from("saved_calcs")
-      .upsert(calcs.map((c) => calcToRow(c, userId)));
-    if (isProRejection(error)) throw new ProRequiredError();
-    if (error) throw error;
-  }
+  const jobRows: JobRow[] = [
+    ...jobs.map((job) => jobToRow(job, userId)),
+    ...deletedJobs.map((marker) => ({
+      id: marker.id,
+      user_id: userId,
+      name: "",
+      job_number: null,
+      phone: null,
+      notes: null,
+      address: null,
+      city: null,
+      state: null,
+      zip: null,
+      created_at: marker.updatedAt,
+      updated_at: marker.updatedAt,
+      deleted: true,
+    })),
+  ];
+  const calcRows: CalcRow[] = [
+    ...calcs.map((calc) => calcToRow(calc, userId)),
+    ...deletedCalcs.map((marker) => ({
+      id: marker.id,
+      user_id: userId,
+      job_id: "",
+      calculator_id: "",
+      path: "/",
+      title: "",
+      summary: "",
+      result: "",
+      state: {},
+      created_at: marker.updatedAt,
+      updated_at: marker.updatedAt,
+      deleted: true,
+    })),
+  ];
 
-  await pushTombstones("jobs", deletedJobs);
-  await pushTombstones("saved_calcs", deletedCalcs);
+  const { data, error } = await supabase.rpc("sync_codewire", {
+    p_job_rows: jobRows,
+    p_calc_rows: calcRows,
+  });
+  if (isProRejection(error)) throw new ProRequiredError();
+  if (error) throw error;
+  if (!shouldApply()) return;
+  if (
+    !data ||
+    typeof data !== "object" ||
+    !("jobs" in data) ||
+    !Array.isArray(data.jobs) ||
+    !("saved_calcs" in data) ||
+    !Array.isArray(data.saved_calcs)
+  )
+    throw new Error("Cloud sync returned an invalid snapshot.");
+  applyRows(data.jobs as JobRow[], data.saved_calcs as CalcRow[]);
 }
 
-async function pushTombstones(
-  table: "jobs" | "saved_calcs",
-  markers: DeletedMarker[],
-) {
-  if (!supabase) return;
-  for (const marker of markers) {
-    const { error } = await supabase
-      .from(table)
-      .update({ deleted: true, updated_at: marker.updatedAt })
-      .eq("id", marker.id);
-    if (isProRejection(error)) throw new ProRequiredError();
-    if (error) throw error;
-  }
+export interface SyncControllerCallbacks {
+  onPending?: () => void;
+  onStart?: () => void;
+  onSuccess?: () => void;
+  onError?: (error: unknown) => void;
 }
 
-export async function fullSync(userId: string) {
-  await pull(); // merge remote first
-  await push(userId); // then mirror merged local back up
+export interface SyncController {
+  initialSync: () => Promise<void>;
+  retry: () => Promise<void>;
+  stop: () => void;
 }
 
-/**
- * Subscribe to local store changes and debounce a push to the cloud.
- * Returns an unsubscribe function.
- */
-export function startAutoSync(userId: string): () => void {
+export interface SyncControllerDependencies {
+  pull: (shouldApply?: () => boolean) => Promise<void>;
+  push: (userId: string, shouldApply?: () => boolean) => Promise<void>;
+  subscribe: (callback: () => void) => () => void;
+}
+
+const defaultControllerDependencies: SyncControllerDependencies = {
+  pull,
+  push,
+  subscribe,
+};
+
+/** Serializes initial, automatic, reconnect, and manual sync operations. */
+export function createSyncController(
+  userId: string,
+  callbacks: SyncControllerCallbacks = {},
+  debounceMs = 1500,
+  dependencies: SyncControllerDependencies = defaultControllerDependencies,
+): SyncController {
   let timer: ReturnType<typeof setTimeout> | null = null;
-  const unsub = subscribe(() => {
+  let stopped = false;
+  let initialized = false;
+  let suppressAuto = true;
+  let online =
+    typeof navigator === "undefined" || navigator.onLine !== false;
+  let revision = 0;
+  let tail: Promise<void> = Promise.resolve();
+  let fullTask: Promise<void> | null = null;
+  let pushTask: Promise<void> | null = null;
+  let queueFullAfterCurrent = false;
+
+  const reportPending = () => {
+    if (!stopped) callbacks.onPending?.();
+  };
+  const reportStart = () => {
+    if (!stopped) callbacks.onStart?.();
+  };
+  const reportSuccess = () => {
+    if (!stopped && online) callbacks.onSuccess?.();
+  };
+  const reportError = (error: unknown) => {
+    if (!stopped) callbacks.onError?.(error);
+  };
+
+  const enqueue = (operation: () => Promise<void>) => {
+    const task = tail.catch(() => {}).then(operation);
+    tail = task;
+    return task;
+  };
+
+  const pushUntilStable = async (): Promise<boolean> => {
+    while (!stopped && online) {
+      const capturedRevision = revision;
+      await dependencies.push(userId, () => !stopped && online);
+      if (stopped || !online) return false;
+      if (revision === capturedRevision) return true;
+    }
+    return false;
+  };
+
+  const runPush = async () => {
+    if (stopped || suppressAuto || !initialized || !online) return;
+    reportStart();
+    try {
+      if (!(await pushUntilStable()) || !online) return;
+      reportSuccess();
+    } catch (error) {
+      initialized = false;
+      suppressAuto = true;
+      reportError(error);
+      throw error;
+    }
+  };
+
+  const requestPush = () => {
+    if (stopped || suppressAuto || !initialized || !online || pushTask)
+      return pushTask;
+    const task = enqueue(runPush).finally(() => {
+      if (pushTask === task) pushTask = null;
+    });
+    pushTask = task;
+    return task;
+  };
+
+  const schedulePush = () => {
+    if (
+      stopped ||
+      !initialized ||
+      suppressAuto ||
+      !online ||
+      pushTask ||
+      fullTask
+    )
+      return;
     if (timer) clearTimeout(timer);
     timer = setTimeout(() => {
-      push(userId).catch(() => {
-        /* offline / transient — retried on next change */
+      timer = null;
+      if (stopped || suppressAuto || !initialized || !online) return;
+      void requestPush()?.catch(() => {
+        // The status UI exposes the failure. Retry always performs a fresh pull.
       });
-    }, 1500);
+    }, debounceMs);
+  };
+
+  const unsub = dependencies.subscribe(() => {
+    revision += 1;
+    if (initialized && !suppressAuto && !pushTask && !fullTask)
+      reportPending();
+    schedulePush();
   });
-  return () => {
+
+  const requestFullSync = (queueIfBusy = false) => {
+    if (stopped) return Promise.resolve();
+    initialized = false;
+    suppressAuto = true;
+    if (timer) {
+      clearTimeout(timer);
+      timer = null;
+    }
+    if (fullTask) {
+      if (queueIfBusy) queueFullAfterCurrent = true;
+      return fullTask;
+    }
+    const task = enqueue(async () => {
+      if (stopped) return;
+      reportStart();
+      try {
+        if (!online) throw new Error("offline");
+        await dependencies.pull(() => !stopped && online);
+        if (stopped || !online) return;
+        if (!(await pushUntilStable()) || stopped || !online) return;
+        initialized = true;
+        suppressAuto = false;
+        reportSuccess();
+      } catch (error) {
+        initialized = false;
+        suppressAuto = true;
+        reportError(error);
+        throw error;
+      }
+    }).finally(() => {
+      if (fullTask === task) fullTask = null;
+      if (!stopped && queueFullAfterCurrent) {
+        queueFullAfterCurrent = false;
+        void requestFullSync().catch(() => {});
+      }
+    });
+    fullTask = task;
+    return task;
+  };
+
+  const handleOffline = () => {
+    online = false;
+    initialized = false;
+    suppressAuto = true;
+    if (timer) {
+      clearTimeout(timer);
+      timer = null;
+    }
+    reportError(new Error("offline"));
+  };
+  const handleOnline = () => {
+    online = true;
+    void requestFullSync(true).catch(() => {});
+  };
+  if (typeof window !== "undefined") {
+    window.addEventListener("offline", handleOffline);
+    window.addEventListener("online", handleOnline);
+  }
+
+  const stop = () => {
+    stopped = true;
+    initialized = false;
+    suppressAuto = true;
+    queueFullAfterCurrent = false;
     if (timer) clearTimeout(timer);
     unsub();
+    if (typeof window !== "undefined") {
+      window.removeEventListener("offline", handleOffline);
+      window.removeEventListener("online", handleOnline);
+    }
   };
+
+  return { initialSync: requestFullSync, retry: requestFullSync, stop };
 }

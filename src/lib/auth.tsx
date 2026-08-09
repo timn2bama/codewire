@@ -7,6 +7,7 @@ import {
 } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase, isCloudConfigured } from "./supabase";
+import { setLocalDataScope } from "./jobs";
 
 interface AuthResult {
   error?: string;
@@ -32,14 +33,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!supabase) return;
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
+    let active = true;
+    let authEventSeen = false;
+    const applySession = (next: Session | null) => {
+      if (!active) return;
+      setLocalDataScope(next?.user.id ?? null);
+      setSession(next);
       setLoading(false);
-    });
+    };
+    void supabase.auth
+      .getSession()
+      .then(({ data, error }) => {
+        if (!authEventSeen) applySession(error ? null : data.session);
+      })
+      .catch(() => {
+        if (!authEventSeen) applySession(null);
+      });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
-      setSession(s);
+      authEventSeen = true;
+      applySession(s);
     });
-    return () => sub.subscription.unsubscribe();
+    return () => {
+      active = false;
+      sub.subscription.unsubscribe();
+    };
   }, []);
 
   const value: AuthContextValue = {

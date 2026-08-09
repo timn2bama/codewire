@@ -133,18 +133,38 @@ export default function Account() {
           <div className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
             <div className="text-sm text-slate-500">Signed in as</div>
             <div className="font-semibold">{user.email}</div>
-            <div className="mt-3 flex items-center gap-2">
+            <div
+              className="mt-3 flex items-center gap-2"
+              role="status"
+              aria-live="polite"
+              aria-atomic="true"
+            >
               <span className="text-sm text-slate-500">Plan:</span>
-              <span
-                className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                  sub.isPro
-                    ? "bg-brand/20 text-brand"
-                    : "bg-slate-800 text-slate-300"
-                }`}
-              >
-                {sub.isPro ? `Pro · ${sub.status}` : "Free"}
-              </span>
+              {sub.loading ? (
+                <span className="rounded-full bg-slate-800 px-2.5 py-0.5 text-xs font-semibold text-slate-300">
+                  Checking...
+                </span>
+              ) : sub.error ? (
+                <span className="rounded-full bg-amber-500/15 px-2.5 py-0.5 text-xs font-semibold text-amber-300">
+                  Unavailable
+                </span>
+              ) : (
+                <span
+                  className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                    sub.isPro
+                      ? "bg-brand/20 text-brand"
+                      : "bg-slate-800 text-slate-300"
+                  }`}
+                >
+                  {sub.isPro ? `Pro · ${sub.status}` : "Free"}
+                </span>
+              )}
             </div>
+            {sub.error && (
+              <p className="mt-2 text-xs text-amber-300">
+                Codewire could not verify your plan. Your device data is safe.
+              </p>
+            )}
             {sub.currentPeriodEnd && (
               <div className="mt-1 text-xs text-slate-500">
                 Renews/ends {new Date(sub.currentPeriodEnd).toLocaleDateString()}
@@ -152,7 +172,24 @@ export default function Account() {
             )}
           </div>
 
-          {sub.isPro ? (
+          {sub.loading ? (
+            <button
+              type="button"
+              disabled
+              aria-busy="true"
+              className="w-full rounded-xl bg-slate-800 py-3 font-semibold text-slate-400"
+            >
+              Checking plan...
+            </button>
+          ) : sub.error ? (
+            <button
+              type="button"
+              onClick={sub.refresh}
+              className="w-full rounded-xl bg-slate-800 py-3 font-semibold text-slate-100 outline-none active:bg-slate-700 focus-visible:ring-2 focus-visible:ring-brand"
+            >
+              Check plan again
+            </button>
+          ) : sub.isPro ? (
             <button
               onClick={() => openBillingPortal()}
               className="w-full rounded-xl bg-slate-800 py-3 font-semibold text-slate-100 active:bg-slate-700"
