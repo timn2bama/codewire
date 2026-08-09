@@ -43,6 +43,9 @@ npm run build      # type-check, build, and prerender
 
 To enable the optional accounts/billing features locally, copy `.env.example` to `.env.local` and fill in your Supabase and Stripe keys. (Server-only keys must also be set in your hosting environment, never committed.)
 
+Production billing rollout and webhook requirements are documented in
+[`docs/BILLING-OPERATIONS.md`](docs/BILLING-OPERATIONS.md).
+
 ## Project layout
 
 ```
