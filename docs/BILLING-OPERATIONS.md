@@ -51,7 +51,7 @@ Roll out in this order:
 1. Verify the production destination, API version, enabled events, and required
    environment variables.
 2. Recheck that `linked_customers` is `0`.
-3. Apply `20260809142314_stripe_entitlement_hardening.sql`.
+3. Apply `20260809195056_stripe_entitlement_hardening.sql`.
 4. Deploy the RPC-based webhook immediately.
 5. Exercise a test subscription and verify `applied`, `duplicate`, cancellation,
    and an out-of-order replay without exposing raw database errors.
