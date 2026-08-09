@@ -63,7 +63,24 @@ const SUB_STATUSES: readonly SubStatus[] = [
   "canceled",
   "past_due",
 ];
-const PRO_STATUSES: readonly SubStatus[] = ["trialing", "active"];
+
+export function hasValidEntitlement(
+  status: SubStatus,
+  plan: string | null,
+  currentPeriodEnd: string | null,
+  now = Date.now(),
+): boolean {
+  if (status !== "trialing" && status !== "active") return false;
+  if (plan !== "monthly" && plan !== "yearly") return false;
+  if (!currentPeriodEnd || !Number.isFinite(now)) return false;
+
+  const periodEnd = Date.parse(currentPeriodEnd);
+  return Number.isFinite(periodEnd) && periodEnd > now;
+}
+
+export function needsBillingRecovery(status: SubStatus): boolean {
+  return status === "past_due";
+}
 
 function isSubStatus(value: unknown): value is SubStatus {
   return SUB_STATUSES.includes(value as SubStatus);
@@ -88,6 +105,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [record, setRecord] = useState<SubscriptionRecord | null>(null);
   const [nonce, setNonce] = useState(0);
+  const [entitlementClockTick, setEntitlementClockTick] = useState(0);
 
   useEffect(() => {
     if (!supabase || !user) return;
@@ -146,6 +164,23 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
     };
   }, [user, nonce]);
 
+  useEffect(() => {
+    const periodEnd = record?.periodEnd
+      ? Date.parse(record.periodEnd)
+      : Number.NaN;
+    const remaining = periodEnd - Date.now();
+    if (!Number.isFinite(remaining) || remaining <= 0) return;
+
+    // Browsers cap timeouts at a signed 32-bit millisecond value. A long
+    // subscription period wakes periodically and reschedules until expiry.
+    const delay = Math.min(remaining + 50, 2_147_000_000);
+    const timer = window.setTimeout(
+      () => setEntitlementClockTick((current) => current + 1),
+      delay,
+    );
+    return () => window.clearTimeout(timer);
+  }, [entitlementClockTick, record?.periodEnd]);
+
   const refresh = useCallback(() => setNonce((current) => current + 1), []);
   const current = user && record?.userId === user.id ? record : null;
   const loading = Boolean(
@@ -153,7 +188,13 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
   );
   const status = current?.status ?? "free";
   const error = current?.nonce === nonce ? current.error : null;
-  const isPro = devProOverride() || PRO_STATUSES.includes(status);
+  const isPro =
+    devProOverride() ||
+    hasValidEntitlement(
+      status,
+      current?.plan ?? null,
+      current?.periodEnd ?? null,
+    );
 
   const value = useMemo<Subscription>(
     () => ({

@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import { Link, Navigate, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { useAuth } from "../lib/auth";
-import { useSubscription } from "../lib/subscription";
+import {
+  needsBillingRecovery,
+  useSubscription,
+} from "../lib/subscription";
 import { openBillingPortal } from "../lib/billing";
 
 export default function Account() {
@@ -12,6 +15,7 @@ export default function Account() {
   const { user, cloudEnabled, signInWithPassword, signUp, signInWithGoogle, signOut } =
     useAuth();
   const sub = useSubscription();
+  const billingRecoveryNeeded = needsBillingRecovery(sub.status);
 
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
@@ -153,10 +157,16 @@ export default function Account() {
                   className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                     sub.isPro
                       ? "bg-brand/20 text-brand"
+                      : billingRecoveryNeeded
+                        ? "bg-amber-500/15 text-amber-300"
                       : "bg-slate-800 text-slate-300"
                   }`}
                 >
-                  {sub.isPro ? `Pro · ${sub.status}` : "Free"}
+                  {sub.isPro
+                    ? `Pro · ${sub.status}`
+                    : billingRecoveryNeeded
+                      ? "Payment issue"
+                      : "Free"}
                 </span>
               )}
             </div>
@@ -189,12 +199,12 @@ export default function Account() {
             >
               Check plan again
             </button>
-          ) : sub.isPro ? (
+          ) : sub.isPro || billingRecoveryNeeded ? (
             <button
               onClick={() => openBillingPortal()}
               className="w-full rounded-xl bg-slate-800 py-3 font-semibold text-slate-100 active:bg-slate-700"
             >
-              Manage billing
+              {billingRecoveryNeeded ? "Fix billing" : "Manage billing"}
             </button>
           ) : (
             <Link
