@@ -20,7 +20,7 @@ Site: https://codewire.tools
 
 ## Pricing
 - Free: all five calculators, up to 2 saved jobs on-device.
-- Codewire Pro: $6/month or $45/year (about 38% off), 7-day free trial. Adds unlimited jobs, cloud sync, and PDF export.
+- Codewire Pro: $6/month or $45/year (about 38% off). Eligible first-time subscribers receive a 7-day trial. Adds unlimited jobs, cloud sync, and PDF export.
 
 ## Important
 Codewire is a field aid, not a substitute for the printed code book, training, or a licensed inspection. Always verify against the NEC edition adopted by the local authority having jurisdiction (AHJ).
