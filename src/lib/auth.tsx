@@ -8,6 +8,7 @@ import {
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase, isCloudConfigured } from "./supabase";
 import { setLocalDataScope } from "./jobs";
+import { startGoogleOAuth } from "./authOAuth";
 
 interface AuthResult {
   error?: string;
@@ -21,7 +22,7 @@ interface AuthContextValue {
   cloudEnabled: boolean;
   signInWithPassword: (email: string, password: string) => Promise<AuthResult>;
   signUp: (email: string, password: string) => Promise<AuthResult>;
-  signInWithGoogle: () => Promise<AuthResult>;
+  signInWithGoogle: (returnPath?: string) => Promise<AuthResult>;
   signOut: () => Promise<void>;
 }
 
@@ -77,13 +78,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { error } = await supabase.auth.signUp({ email, password });
       return { error: error?.message };
     },
-    async signInWithGoogle() {
+    async signInWithGoogle(returnPath) {
       if (!supabase) return { error: "Cloud accounts are not configured." };
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: { redirectTo: `${window.location.origin}/account` },
-      });
-      return { error: error?.message };
+      return startGoogleOAuth(supabase.auth, window.location.origin, returnPath);
     },
     async signOut() {
       await supabase?.auth.signOut();
