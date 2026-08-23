@@ -3,7 +3,7 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type Stripe from "stripe";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createStripeWebhookHandler } from "./stripe-webhook";
+import { createStripeWebhookHandler } from "../../api/stripe-webhook";
 
 const RAW_BODY = Buffer.from('{"fixture":"stripe-event"}');
 const PERIOD_END_SECONDS = 1_800_000_000;

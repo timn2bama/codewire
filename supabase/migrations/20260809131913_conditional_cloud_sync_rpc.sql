@@ -5,8 +5,10 @@
 -- restored into another account, so cloud identity is scoped by user_id.
 -- Fail fast instead of queueing production traffic behind an unexpected
 -- long-running transaction while the primary keys are replaced.
-set lock_timeout = '5s';
-set statement_timeout = '60s';
+begin;
+
+set local lock_timeout = '5s';
+set local statement_timeout = '60s';
 lock table public.jobs, public.saved_calcs in access exclusive mode;
 
 alter table public.jobs drop constraint if exists jobs_pkey;
@@ -379,3 +381,5 @@ grant execute on function public.sync_codewire(jsonb, jsonb)
 revoke insert, update, delete on public.jobs, public.saved_calcs
   from authenticated;
 grant select on public.jobs, public.saved_calcs to authenticated;
+
+commit;
