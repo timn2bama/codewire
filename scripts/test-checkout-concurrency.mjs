@@ -227,7 +227,7 @@ async function run() {
     assert.deepEqual(identity.rows[0], {
       database_name: 'postgres',
       database_user: 'postgres',
-      is_superuser: 'on',
+      is_superuser: 'off',
       reservation_table: 'private.stripe_checkout_reservations',
     })
 
