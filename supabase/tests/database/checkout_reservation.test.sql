@@ -151,7 +151,7 @@ select is(
         'yield_stripe_checkout_reservation_lease'
       )
       and 'search_path=""' = any(
-        pg_catalog.coalesce(p.proconfig, '{}'::text[])
+        coalesce(p.proconfig, '{}'::text[])
       )
   ),
   4::bigint,
