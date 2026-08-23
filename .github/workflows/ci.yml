@@ -14,17 +14,20 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
           cache: npm
+
+      - name: Check deployable API boundary
+        run: npm run check:api-boundary
 
       - name: Install dependencies
         run: npm ci
@@ -37,3 +40,28 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Set up Supabase CLI
+        uses: supabase/setup-cli@ab058987d8d6c725971f6cf9d0b5c98467e30bd1 # v1.7.1
+        with:
+          version: 2.115.0
+
+      # pgTAP only needs Postgres; exclude every optional local service.
+      - name: Start local Supabase database
+        id: supabase_start
+        run: >-
+          supabase start --exclude
+          gotrue,realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+
+      - name: Replay local database migrations
+        run: supabase db reset --local --no-seed
+
+      - name: Test local database
+        run: supabase test db --local
+
+      - name: Test Checkout concurrency
+        run: npm run test:db:concurrency
+
+      - name: Stop local Supabase
+        if: ${{ always() && steps.supabase_start.outcome != 'skipped' }}
+        run: supabase stop --no-backup

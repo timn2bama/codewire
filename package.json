@@ -6,9 +6,12 @@
   "description": "Codewire — five NEC code calculators for electricians, in one fast offline app.",
   "scripts": {
     "dev": "vite",
+    "check:api-boundary": "node scripts/check-api-boundary.mjs",
+    "prebuild": "npm run check:api-boundary",
     "build": "tsc -b && vite build && node scripts/prerender.mjs",
     "preview": "vite preview",
     "test": "vitest run",
+    "test:db:concurrency": "node scripts/test-checkout-concurrency.mjs",
     "test:watch": "vitest",
     "lint": "eslint ."
   },
@@ -33,6 +36,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.3",
     "globals": "^17.9.0",
+    "pg": "8.23.0",
     "postcss": "^8.4.49",
     "sharp": "^0.35.1",
     "tailwindcss": "^3.4.15",
