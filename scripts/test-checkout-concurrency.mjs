@@ -158,13 +158,19 @@ async function expectRpcDenied(client, role, rpc) {
   await client.query('begin')
   try {
     await client.query(`set local role ${role}`)
-    await client.query(rpc.sql, rpc.values)
-    assert.fail(`${role} unexpectedly executed ${rpc.name}`)
-  } catch (error) {
-    assert.equal(
-      error.code,
-      '42501',
-      `${role} must receive insufficient_privilege for ${rpc.name}`,
+    const roleIdentity = await client.query('select current_user as role')
+    assert.equal(roleIdentity.rows[0]?.role, role)
+    await assert.rejects(
+      () => client.query(rpc.sql, rpc.values),
+      (error) => {
+        assert.equal(
+          error.code,
+          '42501',
+          `${role} must receive insufficient_privilege for ${rpc.name}`,
+        )
+        return true
+      },
+      `${role} unexpectedly executed ${rpc.name}`,
     )
   } finally {
     await rollbackQuietly(client)
@@ -219,7 +225,12 @@ async function run() {
       `select
          pg_catalog.current_database() as database_name,
          current_user as database_user,
-         pg_catalog.current_setting('is_superuser') as is_superuser,
+         pg_catalog.pg_has_role(current_user, 'anon', 'SET')
+           as can_assume_anon,
+         pg_catalog.pg_has_role(current_user, 'authenticated', 'SET')
+           as can_assume_authenticated,
+         pg_catalog.pg_has_role(current_user, 'service_role', 'SET')
+           as can_assume_service_role,
          pg_catalog.to_regclass(
            'private.stripe_checkout_reservations'
          )::text as reservation_table`,
@@ -227,7 +238,9 @@ async function run() {
     assert.deepEqual(identity.rows[0], {
       database_name: 'postgres',
       database_user: 'postgres',
-      is_superuser: 'off',
+      can_assume_anon: true,
+      can_assume_authenticated: true,
+      can_assume_service_role: true,
       reservation_table: 'private.stripe_checkout_reservations',
     })
 
