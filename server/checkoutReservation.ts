@@ -172,8 +172,9 @@ function asEpochSeconds(value: unknown, context: string): number {
 }
 
 function asTrialPeriodDays(value: unknown, context: string): 7 | null {
-  if (value !== 7 && value !== null) return malformed(context);
-  return value;
+  if (value === 7) return 7;
+  if (value === null) return null;
+  return malformed(context);
 }
 
 function asOrigin(value: unknown, context: string): string {
