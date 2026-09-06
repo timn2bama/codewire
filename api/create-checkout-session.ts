@@ -109,6 +109,7 @@ async function isUsableCustomer(
   try {
     const customer = await stripe.customers.retrieve(customerId);
     if ("deleted" in customer && customer.deleted) return false;
+    if (!("metadata" in customer)) return false;
 
     const owner = customer.metadata?.supabase_user_id;
     if (owner && owner !== userId) {
