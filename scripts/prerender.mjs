@@ -186,7 +186,7 @@ const routes = [
   {
     path: "/upgrade",
     title: "Codewire Pro — Cloud Sync, Unlimited Jobs, PDF Export",
-    desc: "Codewire Pro is $6/month or $45/year (7-day free trial). The NEC calculators stay free; Pro adds cloud sync across devices, unlimited saved jobs, and PDF report export.",
+    desc: "Codewire Pro is $6/month or $45/year. Eligible first-time subscribers receive a 7-day trial. The NEC calculators stay free; Pro adds cloud sync across devices, unlimited saved jobs, and PDF report export.",
     h1: "Codewire Pro",
     intro:
       "The calculators are always free. Codewire Pro keeps your jobs backed up and synced across devices and unlocks the field workflow.",
@@ -196,11 +196,11 @@ const routes = [
       "Export job reports to PDF.",
     ],
     detail:
-      "Codewire Pro is $6.00/month or $45.00/year (about 38% off the monthly rate) with a 7-day free trial. Cancel anytime.",
+      "Codewire Pro is $6.00/month or $45.00/year (about 38% off the monthly rate). Eligible first-time subscribers receive a 7-day trial. Stripe shows any amount due before confirmation. Cancel anytime.",
     faq: [
       {
         q: "How much does Codewire Pro cost?",
-        a: "$6.00 per month or $45.00 per year, which is about 38% off the monthly price. There's a 7-day free trial and you can cancel anytime.",
+        a: "$6.00 per month or $45.00 per year, which is about 38% off the monthly price. Eligible first-time subscribers receive a 7-day trial. Stripe shows any amount due before confirmation, and you can cancel anytime.",
       },
     ],
   },

@@ -4,7 +4,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { ChevronLeft, Check, Cloud, Infinity as Inf, FileDown, RefreshCw } from "lucide-react";
 import { useAuth } from "../lib/auth";
 import { useSubscription } from "../lib/subscription";
-import { startCheckout } from "../lib/billing";
+import { openBillingPortal, startCheckout } from "../lib/billing";
+import { getUpgradeBillingView } from "../lib/billingUi";
 
 const BENEFITS = [
   { icon: Cloud, text: "Cloud sync & backup across all your devices" },
@@ -16,10 +17,17 @@ const BENEFITS = [
 export default function Upgrade() {
   const navigate = useNavigate();
   const { user, cloudEnabled } = useAuth();
-  const { isPro } = useSubscription();
+  const sub = useSubscription();
   const [plan, setPlan] = useState<"monthly" | "yearly">("yearly");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const billingView = getUpgradeBillingView({
+    cloudEnabled,
+    isPro: sub.isPro,
+    status: sub.status,
+    loading: sub.loading,
+    error: sub.error,
+  });
 
   const go = async () => {
     setError(null);
@@ -34,6 +42,31 @@ export default function Upgrade() {
     } catch (e) {
       setError((e as Error).message);
       setBusy(false);
+    }
+  };
+
+  const openPortal = async () => {
+    setError(null);
+    if (!user) {
+      navigate("/login?next=%2Fupgrade");
+      return;
+    }
+    try {
+      setBusy(true);
+      await openBillingPortal();
+    } catch (e) {
+      setError((e as Error).message);
+      setBusy(false);
+    }
+  };
+
+  const runPrimaryAction = () => {
+    if (billingView.action === "checkout") {
+      void go();
+    } else if (billingView.action === "portal") {
+      void openPortal();
+    } else if (billingView.action === "refresh") {
+      sub.refresh();
     }
   };
 
@@ -65,7 +98,7 @@ export default function Upgrade() {
         })}
       </div>
 
-      {isPro ? (
+      {billingView.kind === "pro" ? (
         <div className="mt-7 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-center">
           <Check className="mx-auto mb-1 text-emerald-400" size={28} />
           <p className="font-semibold text-emerald-300">You're on Pro</p>
@@ -77,10 +110,13 @@ export default function Upgrade() {
         <>
           <div className="mt-7 grid grid-cols-2 gap-3">
             <button
+              type="button"
               onClick={() => setPlan("monthly")}
+              disabled={busy || billingView.action !== "checkout"}
+              aria-pressed={plan === "monthly"}
               className={`rounded-2xl border p-4 text-left ${
                 plan === "monthly" ? "border-brand bg-brand/10" : "border-slate-800 bg-slate-900"
-              }`}
+              } disabled:cursor-not-allowed disabled:opacity-60`}
             >
               <div className="text-sm text-slate-400">Monthly</div>
               <div className="text-2xl font-bold">
@@ -88,12 +124,15 @@ export default function Upgrade() {
               </div>
             </button>
             <button
+              type="button"
               onClick={() => setPlan("yearly")}
+              disabled={busy || billingView.action !== "checkout"}
+              aria-pressed={plan === "yearly"}
               className={`relative rounded-2xl border p-4 text-left ${
                 plan === "yearly" ? "border-brand bg-brand/10" : "border-slate-800 bg-slate-900"
-              }`}
+              } disabled:cursor-not-allowed disabled:opacity-60`}
             >
-              <span className="absolute right-2 top-2 rounded-full bg-brand px-2 py-0.5 text-[10px] font-bold text-white">
+              <span className="absolute right-2 top-2 rounded-full bg-brand-dark px-2 py-0.5 text-[10px] font-bold text-white">
                 SAVE 38%
               </span>
               <div className="text-sm text-slate-400">Yearly</div>
@@ -103,19 +142,40 @@ export default function Upgrade() {
             </button>
           </div>
 
-          {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
+          {error && (
+            <p className="mt-3 text-sm text-red-400" role="alert">
+              {error}
+            </p>
+          )}
+          {sub.error && billingView.kind === "error" && (
+            <p className="mt-3 text-sm text-amber-300" role="status">
+              Codewire could not verify your current plan. Your device data is
+              safe.
+            </p>
+          )}
 
           <button
-            onClick={go}
-            disabled={busy || !cloudEnabled}
-            className="mt-4 w-full rounded-xl bg-brand py-3.5 font-semibold text-white disabled:opacity-50 active:bg-brand-dark"
+            type="button"
+            onClick={runPrimaryAction}
+            disabled={busy || billingView.action === "none"}
+            aria-busy={busy}
+            className="mt-4 w-full rounded-xl bg-brand-dark py-3.5 font-semibold text-white disabled:opacity-50 active:bg-brand"
           >
-            {busy ? "Starting…" : "Start 7-day free trial"}
+            {busy
+              ? billingView.action === "portal"
+                ? "Opening billing..."
+                : "Opening checkout..."
+              : billingView.cta}
           </button>
-          <p className="mt-2 text-center text-xs text-slate-500">
-            {cloudEnabled
-              ? "Cancel anytime. You won't be charged during the trial."
-              : "Cloud billing isn't configured in this build yet."}
+          <p
+            className={`mt-2 text-center text-xs ${
+              billingView.kind === "recovery" || billingView.kind === "error"
+                ? "text-amber-300"
+                : "text-slate-400"
+            }`}
+            role={billingView.kind === "recovery" ? "status" : undefined}
+          >
+            {billingView.detail}
           </p>
         </>
       )}
