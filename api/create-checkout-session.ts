@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
-import type { VercelRequest, VercelResponse } from "@vercel/node";
+import type { VercelRequest, VercelResponse } from "../server/vercelTypes.js";
 import type Stripe from "stripe";
 import {
   claimStripeCheckoutReservation,
@@ -445,7 +445,13 @@ export function createCheckoutSessionHandler(
         return;
       }
 
-      const plan = (req.body?.plan as string) ?? "monthly";
+      const requestedPlan =
+        typeof req.body === "object" &&
+        req.body !== null &&
+        "plan" in req.body
+          ? req.body.plan
+          : undefined;
+      const plan = requestedPlan ?? "monthly";
       if (plan !== "monthly" && plan !== "yearly") {
         res.status(400).json({ error: "Unknown plan" });
         return;
