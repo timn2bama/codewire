@@ -11,13 +11,14 @@
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import {
+  escapeHtmlAttribute as escAttr,
+  escapeHtmlText as esc,
+} from "./htmlEscape.mjs";
 
 const dist = join(process.cwd(), "dist");
 const SITE = "https://codewire.tools";
 const template = readFileSync(join(dist, "index.html"), "utf8");
-
-const esc = (s) =>
-  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 /** A calculator/page definition. */
 const routes = [
@@ -257,42 +258,45 @@ function jsonLd(r) {
 function renderPage({ title, desc, path, ldStr, body }) {
   const url = SITE + path;
   let html = template;
-  html = html.replace(/<title>[\s\S]*?<\/title>/, `<title>${esc(title)}</title>`);
+  html = html.replace(
+    /<title>[\s\S]*?<\/title>/,
+    () => `<title>${esc(title)}</title>`,
+  );
   html = html.replace(
     /<meta\s+name="description"[\s\S]*?\/>/,
-    `<meta name="description" content="${esc(desc)}" />`,
+    () => `<meta name="description" content="${escAttr(desc)}" />`,
   );
   html = html.replace(
     /<link rel="canonical"[^>]*>/,
-    `<link rel="canonical" href="${url}" />`,
+    () => `<link rel="canonical" href="${escAttr(url)}" />`,
   );
   html = html.replace(
     /<meta property="og:title"[^>]*>/,
-    `<meta property="og:title" content="${esc(title)}" />`,
+    () => `<meta property="og:title" content="${escAttr(title)}" />`,
   );
   html = html.replace(
     /<meta\s+property="og:description"[\s\S]*?\/>/,
-    `<meta property="og:description" content="${esc(desc)}" />`,
+    () => `<meta property="og:description" content="${escAttr(desc)}" />`,
   );
   html = html.replace(
     /<meta property="og:url"[^>]*>/,
-    `<meta property="og:url" content="${url}" />`,
+    () => `<meta property="og:url" content="${escAttr(url)}" />`,
   );
   html = html.replace(
     /<meta name="twitter:title"[^>]*>/,
-    `<meta name="twitter:title" content="${esc(title)}" />`,
+    () => `<meta name="twitter:title" content="${escAttr(title)}" />`,
   );
   html = html.replace(
     /<meta\s+name="twitter:description"[\s\S]*?\/>/,
-    `<meta name="twitter:description" content="${esc(desc)}" />`,
+    () => `<meta name="twitter:description" content="${escAttr(desc)}" />`,
   );
   html = html.replace(
     /<script type="application\/ld\+json">[\s\S]*?<\/script>/,
-    `<script type="application/ld+json">${ldStr}</script>`,
+    () => `<script type="application/ld+json">${ldStr}</script>`,
   );
   html = html.replace(
     /<div id="root">[\s\S]*?<\/div>\s*<\/body>/,
-    `<div id="root">${body}</div>\n  </body>`,
+    () => `<div id="root">${body}</div>\n  </body>`,
   );
   return html;
 }
@@ -323,7 +327,7 @@ function guideBody(g) {
       <main style="max-width: 42rem; margin: 0 auto; padding: 1.5rem">
         <h1>${esc(g.h1)}</h1>
         ${g.html}
-        <p><a href="${g.calcPath}">${esc(g.calcLabel)}</a></p>
+        <p><a href="${escAttr(g.calcPath)}">${esc(g.calcLabel)}</a></p>
         <h2>Frequently asked questions</h2>
         ${faq}
         <p><a href="/">All Codewire calculators</a> · Verify against the NEC edition adopted by your AHJ.</p>
