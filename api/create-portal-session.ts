@@ -1,4 +1,4 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
+import type { VercelRequest, VercelResponse } from "../server/vercelTypes.js";
 import { appOrigin, getStripe, getSupabaseAdmin, getUser } from "../server/shared.js";
 
 /**

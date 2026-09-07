@@ -1,6 +1,6 @@
 import Stripe from "stripe";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import type { VercelRequest } from "@vercel/node";
+import type { VercelRequest } from "./vercelTypes.js";
 
 /** Shared server-side helpers for the Vercel serverless functions under /api. */
 
