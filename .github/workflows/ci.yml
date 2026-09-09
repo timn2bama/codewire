@@ -44,6 +44,12 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Install browser for smoke tests
+        run: npx playwright install --with-deps chromium
+
+      - name: Test critical browser journeys
+        run: npm run test:e2e
+
       - name: Set up Supabase CLI
         uses: supabase/setup-cli@46f7f98c7f948ad727d22c1e67fab04c223a0520 # v3.0.0
         with:
