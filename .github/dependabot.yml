@@ -11,6 +11,12 @@ updates:
     open-pull-requests-limit: 5
     labels:
       - dependencies
+    # Major upgrades are reviewed as dedicated migrations with their own
+    # compatibility and rollout testing instead of automated version bumps.
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-major
     groups:
       routine-minor-and-patch:
         patterns:
