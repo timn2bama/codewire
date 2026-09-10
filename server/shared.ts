@@ -7,7 +7,12 @@ import type { VercelRequest } from "./vercelTypes.js";
 export function getStripe(): Stripe {
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key) throw new Error("STRIPE_SECRET_KEY is not set");
-  return new Stripe(key, { apiVersion: "2026-05-27.dahlia" });
+  // Keep the deployed API contract stable when upgrading the SDK. Stripe's
+  // generated types only name the SDK's latest API version, so an older pinned
+  // version needs an explicit cast until its API migration is reviewed.
+  return new Stripe(key, {
+    apiVersion: "2026-05-27.dahlia" as Stripe.LatestApiVersion,
+  });
 }
 
 export function getSupabaseAdmin(): SupabaseClient {

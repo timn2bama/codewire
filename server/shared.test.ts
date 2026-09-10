@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   appOrigin,
   billingPricesConfigured,
+  getStripe,
   planFromPrice,
   priceIdFor,
 } from "./shared";
@@ -9,6 +10,7 @@ import {
 const ENV_KEYS = [
   "APP_ORIGIN",
   "VERCEL_ENV",
+  "STRIPE_SECRET_KEY",
   "STRIPE_PRICE_MONTHLY",
   "STRIPE_PRICE_YEARLY",
   "STRIPE_PRICE_MONTHLY_LEGACY",
@@ -34,6 +36,12 @@ afterEach(() => {
 });
 
 describe("Stripe billing configuration", () => {
+  it("keeps the deployed Stripe API version pinned across SDK upgrades", () => {
+    process.env.STRIPE_SECRET_KEY = "sk_test_placeholder";
+
+    expect(getStripe().getApiField("version")).toBe("2026-05-27.dahlia");
+  });
+
   it("trims current prices and uses them for new checkout", () => {
     process.env.STRIPE_PRICE_MONTHLY = "  price_monthly  ";
     process.env.STRIPE_PRICE_YEARLY = "price_yearly";
