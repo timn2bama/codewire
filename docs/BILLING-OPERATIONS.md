@@ -144,7 +144,7 @@ Roll out single-flight in this order:
 2. Wait for old Checkout requests to drain. Re-run the database inventory and
    the independent, fully paginated Stripe open-session gate after the pause is
    confirmed. Keep Checkout paused unless the Stripe result is zero.
-3. Apply `20260815142908_stripe_checkout_single_flight.sql`. Do not allow old
+3. Apply `20260905152421_stripe_checkout_single_flight.sql`. Do not allow old
    Checkout API traffic during or after this migration.
 4. Verify RLS is enabled, the table has no API-role privileges, and only
    `service_role` can execute the four reservation functions.
