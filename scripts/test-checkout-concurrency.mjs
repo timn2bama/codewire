@@ -248,7 +248,7 @@ async function run() {
       `select exists(
          select 1
          from supabase_migrations.schema_migrations
-         where version = '20260815142908'
+         where version = '20260905152421'
        ) as applied`,
     )
     assert.equal(migration.rows[0]?.applied, true)
