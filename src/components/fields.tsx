@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useId, type ReactNode } from "react";
 
 interface NumberFieldProps {
   label: string;
@@ -8,6 +8,8 @@ interface NumberFieldProps {
   step?: number;
   min?: number;
   placeholder?: string;
+  invalid?: boolean;
+  error?: string;
 }
 
 export function NumberField({
@@ -18,7 +20,11 @@ export function NumberField({
   step,
   min,
   placeholder,
+  invalid = false,
+  error,
 }: NumberFieldProps) {
+  const errorId = useId();
+
   return (
     <label className="block">
       <span className="field-label">{label}</span>
@@ -31,6 +37,8 @@ export function NumberField({
           step={step}
           min={min}
           placeholder={placeholder}
+          aria-invalid={invalid || undefined}
+          aria-describedby={invalid && error ? errorId : undefined}
           onChange={(e) =>
             onChange(e.target.value === "" ? "" : Number(e.target.value))
           }
@@ -41,6 +49,11 @@ export function NumberField({
           </span>
         )}
       </div>
+      {invalid && error && (
+        <span id={errorId} className="mt-1 block text-xs text-red-400">
+          {error}
+        </span>
+      )}
     </label>
   );
 }
