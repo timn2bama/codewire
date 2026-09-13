@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useId, type ReactNode } from "react";
 
 interface NumberFieldProps {
   label: string;
@@ -77,7 +77,7 @@ export function SelectField<T extends string>({
 }
 
 interface SegmentedProps<T extends string> {
-  label?: string;
+  label: string;
   value: T;
   options: { value: T; label: string }[];
   onChange: (v: T) => void;
@@ -89,14 +89,23 @@ export function Segmented<T extends string>({
   options,
   onChange,
 }: SegmentedProps<T>) {
+  const labelId = useId();
+
   return (
     <div>
-      {label && <span className="field-label">{label}</span>}
-      <div className="flex gap-2">
+      <span id={labelId} className="field-label">
+        {label}
+      </span>
+      <div
+        className="flex gap-2"
+        role="group"
+        aria-labelledby={labelId}
+      >
         {options.map((o) => (
           <button
             key={o.value}
             type="button"
+            aria-pressed={value === o.value}
             className={`seg-btn ${value === o.value ? "seg-btn-on" : "seg-btn-off"}`}
             onClick={() => onChange(o.value)}
           >
