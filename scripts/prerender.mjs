@@ -19,13 +19,20 @@ import {
 const dist = join(process.cwd(), "dist");
 const SITE = "https://codewire.tools";
 const template = readFileSync(join(dist, "index.html"), "utf8");
+const routeMetadata = JSON.parse(
+  readFileSync(
+    join(process.cwd(), "src", "content", "routeMetadata.json"),
+    "utf8",
+  ),
+);
+const metadataByPath = new Map(
+  routeMetadata.map((metadata) => [metadata.path, metadata]),
+);
 
 /** A calculator/page definition. */
-const routes = [
+const routeDetails = [
   {
     path: "/voltage-drop",
-    title: "Voltage Drop Calculator (NEC) — Codewire",
-    desc: "Free NEC voltage drop calculator for electricians. Enter wire size, load current, one-way length and voltage to get percent drop, voltage at the load, and the minimum wire size to stay within 3% / 5%.",
     h1: "Voltage Drop Calculator (NEC)",
     intro:
       "Calculate voltage drop for copper or aluminum conductors and find the smallest wire size that keeps you within code. Works for single-phase and three-phase circuits, offline, on any phone.",
@@ -53,8 +60,6 @@ const routes = [
   },
   {
     path: "/conduit-fill",
-    title: "Conduit Fill Calculator (NEC Chapter 9) — Codewire",
-    desc: "Free NEC conduit fill calculator. Choose conduit type and size, add your conductors, and see fill percentage with pass/fail plus the smallest conduit that fits. Covers EMT, IMC, RMC, PVC 40/80, ENT, FMC, LFMC.",
     h1: "Conduit Fill Calculator (NEC Chapter 9)",
     intro:
       "Check whether your conductors fit a conduit per NEC Chapter 9, and find the smallest conduit size that passes. Supports EMT, IMC, RMC, PVC Schedule 40/80, ENT, FMC and LFMC with THHN/THWN-2 and XHHW conductors.",
@@ -82,8 +87,6 @@ const routes = [
   },
   {
     path: "/ampacity",
-    title: "Wire Ampacity Calculator with Derating (NEC 310.16) — Codewire",
-    desc: "Free NEC wire ampacity calculator. Get allowable ampacity for copper or aluminum with ambient-temperature and conductor-bundling derating and termination limits, or reverse-solve the minimum wire size for a load.",
     h1: "Wire Ampacity Calculator (NEC 310.16)",
     intro:
       "Find the safe current-carrying capacity of a conductor after temperature and bundling derating, or work backward to the minimum wire size for a given load. Based on NEC Table 310.16 with 310.15 correction and adjustment factors.",
@@ -111,8 +114,6 @@ const routes = [
   },
   {
     path: "/box-fill",
-    title: "Box Fill Calculator (NEC 314.16) — Codewire",
-    desc: "Free NEC box fill calculator. Add conductors, devices, clamps and grounds to get the required cubic inches versus your box volume with pass/fail, per NEC 314.16.",
     h1: "Box Fill Calculator (NEC 314.16)",
     intro:
       "Make sure a junction or device box is large enough. Codewire totals the required volume from conductors, devices, clamps and equipment grounds and compares it to your box volume, per NEC 314.16.",
@@ -136,8 +137,6 @@ const routes = [
   },
   {
     path: "/conduit-bending",
-    title: "Conduit Bending Calculator — Offsets, Saddles & Stubs — Codewire",
-    desc: "Free conduit bending calculator for electricians: offsets, three- and four-point saddles, and 90° stub-ups. Get mark distances, shrink and multipliers instantly.",
     h1: "Conduit Bending Calculator",
     intro:
       "Lay out conduit bends fast: offsets, three-point and four-point saddles, and 90° stub-ups. Codewire gives the distance between marks, shrink, and the multiplier so you bend it right the first time.",
@@ -161,8 +160,6 @@ const routes = [
   },
   {
     path: "/about",
-    title: "What is Codewire? NEC Calculators for Electricians",
-    desc: "Codewire is a fast, offline app that puts five NEC calculators in one place for electricians: voltage drop, conduit fill, conduit bending, box fill and wire ampacity.",
     h1: "What is Codewire?",
     intro:
       "Codewire is a field reference app for electricians. It replaces juggling several apps and a paper code book by putting the five most-used National Electrical Code calculators in one fast, offline, mobile-first tool with instant pass/fail.",
@@ -186,8 +183,6 @@ const routes = [
   },
   {
     path: "/upgrade",
-    title: "Codewire Pro — Cloud Sync, Unlimited Jobs, PDF Export",
-    desc: "Codewire Pro is $6/month or $45/year. Eligible first-time subscribers receive a 7-day trial. The NEC calculators stay free; Pro adds cloud sync across devices, unlimited saved jobs, and PDF report export.",
     h1: "Codewire Pro",
     intro:
       "The calculators are always free. Codewire Pro keeps your jobs backed up and synced across devices and unlocks the field workflow.",
@@ -206,6 +201,12 @@ const routes = [
     ],
   },
 ];
+
+const routes = routeDetails.map((route) => {
+  const metadata = metadataByPath.get(route.path);
+  if (!metadata) throw new Error(`Missing route metadata for ${route.path}`);
+  return { ...route, title: metadata.title, desc: metadata.description };
+});
 
 function bodyHtml(r) {
   const how = r.how.map((s) => `<li>${esc(s)}</li>`).join("");
@@ -358,9 +359,14 @@ function guideLd(g) {
 }
 
 for (const g of guides) {
+  const metadata = metadataByPath.get(g.path);
+  if (!metadata) throw new Error(`Missing route metadata for ${g.path}`);
+  if (metadata.title !== g.title || metadata.description !== g.description) {
+    throw new Error(`Guide metadata drift for ${g.path}`);
+  }
   const html = renderPage({
-    title: g.title,
-    desc: g.description,
+    title: metadata.title,
+    desc: metadata.description,
     path: g.path,
     ldStr: guideLd(g),
     body: guideBody(g),
