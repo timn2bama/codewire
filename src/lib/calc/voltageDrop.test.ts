@@ -84,4 +84,38 @@ describe("voltage drop (circular-mil method)", () => {
     });
     expect(r.percentDrop).toBeLessThanOrEqual(3);
   });
+
+  it.each([
+    ["negative current", { current: -30 }],
+    ["zero current", { current: 0 }],
+    ["zero length", { length: 0 }],
+    ["zero voltage", { voltage: 0 }],
+    ["nonfinite current", { current: Number.POSITIVE_INFINITY }],
+    ["nonfinite voltage", { voltage: Number.NaN }],
+    ["zero sets", { sets: 0 }],
+    ["fractional sets", { sets: 1.5 }],
+  ])("rejects %s", (_label, override) => {
+    const input = {
+      phase: "single" as const,
+      material: "cu" as const,
+      size: "8" as const,
+      current: 30,
+      length: 100,
+      voltage: 120,
+      sets: 1,
+      ...override,
+    };
+
+    expect(() => calcVoltageDrop(input)).toThrow(RangeError);
+    expect(
+      recommendSize({
+        phase: input.phase,
+        material: input.material,
+        current: input.current,
+        length: input.length,
+        voltage: input.voltage,
+        sets: input.sets,
+      }),
+    ).toBeNull();
+  });
 });

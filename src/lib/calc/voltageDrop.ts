@@ -30,24 +30,41 @@ function phaseMultiplier(phase: Phase): number {
   return phase === "three" ? Math.sqrt(3) : 2;
 }
 
+function isPositiveFinite(value: number): boolean {
+  return Number.isFinite(value) && value > 0;
+}
+
+export function isValidVoltageDropInput(input: VoltageDropInput): boolean {
+  const sets = input.sets ?? 1;
+  return (
+    (input.phase === "single" || input.phase === "three") &&
+    (input.material === "cu" || input.material === "al") &&
+    Number.isFinite(CIRCULAR_MILS[input.size]) &&
+    isPositiveFinite(input.current) &&
+    isPositiveFinite(input.length) &&
+    isPositiveFinite(input.voltage) &&
+    Number.isInteger(sets) &&
+    sets > 0
+  );
+}
+
 /**
  * Simplified circular-mil ("K") voltage drop:
  *   VD = (m * K * I * L) / (CM * sets)
  * m = 2 for single-phase, √3 for three-phase.
  */
 export function calcVoltageDrop(input: VoltageDropInput): VoltageDropResult {
-  const sets = Math.max(1, input.sets ?? 1);
+  if (!isValidVoltageDropInput(input)) {
+    throw new RangeError("Voltage-drop inputs must be finite positive values");
+  }
+
+  const sets = input.sets ?? 1;
   const cm = CIRCULAR_MILS[input.size];
   const k = K_CONSTANT[input.material];
   const m = phaseMultiplier(input.phase);
 
-  const voltageDrop =
-    cm > 0 && sets > 0
-      ? (m * k * input.current * input.length) / (cm * sets)
-      : 0;
-
-  const percentDrop =
-    input.voltage > 0 ? (voltageDrop / input.voltage) * 100 : 0;
+  const voltageDrop = (m * k * input.current * input.length) / (cm * sets);
+  const percentDrop = (voltageDrop / input.voltage) * 100;
   const voltageAtLoad = input.voltage - voltageDrop;
 
   return {
@@ -67,6 +84,14 @@ export function recommendSize(
   input: Omit<VoltageDropInput, "size">,
   maxPercent = 3,
 ): WireSize | null {
+  if (
+    !Number.isFinite(maxPercent) ||
+    maxPercent <= 0 ||
+    !isValidVoltageDropInput({ ...input, size: WIRE_SIZES[0] })
+  ) {
+    return null;
+  }
+
   for (const size of WIRE_SIZES) {
     const { percentDrop } = calcVoltageDrop({ ...input, size });
     if (percentDrop <= maxPercent) return size;
