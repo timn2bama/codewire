@@ -67,4 +67,35 @@ describe("conduit fill (Ch.9 Tables 1, 4, 5)", () => {
     ]);
     expect(area).toBeCloseTo(0.0133 * 2 + 0.0211, 4);
   });
+
+  it.each([
+    ["negative", -3],
+    ["zero", 0],
+    ["fractional", 1.5],
+    ["infinite", Number.POSITIVE_INFINITY],
+    ["NaN", Number.NaN],
+  ])("rejects %s conductor quantities", (_label, quantity) => {
+    const conductors = [
+      { insulation: "THHN" as const, size: "12" as const, quantity },
+    ];
+
+    expect(() =>
+      calcConduitFill({
+        type: "EMT",
+        tradeSize: '1/2"',
+        conductors,
+      }),
+    ).toThrow(RangeError);
+    expect(recommendConduitSize("EMT", conductors)).toBeNull();
+  });
+
+  it("rejects an empty conductor set", () => {
+    expect(() =>
+      calcConduitFill({
+        type: "EMT",
+        tradeSize: '1/2"',
+        conductors: [],
+      }),
+    ).toThrow(RangeError);
+  });
 });

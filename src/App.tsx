@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
 import Home from "./pages/Home";
 import { CloudSyncManager } from "./components/CloudSyncManager";
+import { RouteMetadata } from "./components/RouteMetadata";
 import { RequireAuth } from "./components/RequireAuth";
 import { Analytics } from "@vercel/analytics/react";
 import { useAuth } from "./lib/auth";
@@ -48,6 +49,7 @@ export default function App() {
   return (
     <>
       <Analytics />
+      <RouteMetadata />
       <CloudSyncManager />
       {authLoading ? (
         <LoadingScreen />

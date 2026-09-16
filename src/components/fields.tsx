@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useId, type ReactNode } from "react";
 
 interface NumberFieldProps {
   label: string;
@@ -8,6 +8,8 @@ interface NumberFieldProps {
   step?: number;
   min?: number;
   placeholder?: string;
+  invalid?: boolean;
+  error?: string;
 }
 
 export function NumberField({
@@ -18,7 +20,11 @@ export function NumberField({
   step,
   min,
   placeholder,
+  invalid = false,
+  error,
 }: NumberFieldProps) {
+  const errorId = useId();
+
   return (
     <label className="block">
       <span className="field-label">{label}</span>
@@ -31,6 +37,8 @@ export function NumberField({
           step={step}
           min={min}
           placeholder={placeholder}
+          aria-invalid={invalid || undefined}
+          aria-describedby={invalid && error ? errorId : undefined}
           onChange={(e) =>
             onChange(e.target.value === "" ? "" : Number(e.target.value))
           }
@@ -41,6 +49,11 @@ export function NumberField({
           </span>
         )}
       </div>
+      {invalid && error && (
+        <span id={errorId} className="mt-1 block text-xs text-red-400">
+          {error}
+        </span>
+      )}
     </label>
   );
 }
@@ -77,7 +90,7 @@ export function SelectField<T extends string>({
 }
 
 interface SegmentedProps<T extends string> {
-  label?: string;
+  label: string;
   value: T;
   options: { value: T; label: string }[];
   onChange: (v: T) => void;
@@ -89,14 +102,23 @@ export function Segmented<T extends string>({
   options,
   onChange,
 }: SegmentedProps<T>) {
+  const labelId = useId();
+
   return (
     <div>
-      {label && <span className="field-label">{label}</span>}
-      <div className="flex gap-2">
+      <span id={labelId} className="field-label">
+        {label}
+      </span>
+      <div
+        className="flex gap-2"
+        role="group"
+        aria-labelledby={labelId}
+      >
         {options.map((o) => (
           <button
             key={o.value}
             type="button"
+            aria-pressed={value === o.value}
             className={`seg-btn ${value === o.value ? "seg-btn-on" : "seg-btn-off"}`}
             onClick={() => onChange(o.value)}
           >

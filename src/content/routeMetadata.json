@@ -1,0 +1,67 @@
+[
+  {
+    "path": "/voltage-drop",
+    "title": "Voltage Drop Calculator (NEC) — Codewire",
+    "description": "Free NEC voltage drop calculator for electricians. Enter wire size, load current, one-way length and voltage to get percent drop, voltage at the load, and the minimum wire size to stay within 3% / 5%."
+  },
+  {
+    "path": "/conduit-fill",
+    "title": "Conduit Fill Calculator (NEC Chapter 9) — Codewire",
+    "description": "Free NEC conduit fill calculator. Choose conduit type and size, add your conductors, and see fill percentage with pass/fail plus the smallest conduit that fits. Covers EMT, IMC, RMC, PVC 40/80, ENT, FMC, LFMC."
+  },
+  {
+    "path": "/ampacity",
+    "title": "Wire Ampacity Calculator with Derating (NEC 310.16) — Codewire",
+    "description": "Free NEC wire ampacity calculator. Get allowable ampacity for copper or aluminum with ambient-temperature and conductor-bundling derating and termination limits, or reverse-solve the minimum wire size for a load."
+  },
+  {
+    "path": "/box-fill",
+    "title": "Box Fill Calculator (NEC 314.16) — Codewire",
+    "description": "Free NEC box fill calculator. Add conductors, devices, clamps and grounds to get the required cubic inches versus your box volume with pass/fail, per NEC 314.16."
+  },
+  {
+    "path": "/conduit-bending",
+    "title": "Conduit Bending Calculator — Offsets, Saddles & Stubs — Codewire",
+    "description": "Free conduit bending calculator for electricians: offsets, three- and four-point saddles, and 90° stub-ups. Get mark distances, shrink and multipliers instantly."
+  },
+  {
+    "path": "/about",
+    "title": "What is Codewire? NEC Calculators for Electricians",
+    "description": "Codewire is a fast, offline app that puts five NEC calculators in one place for electricians: voltage drop, conduit fill, conduit bending, box fill and wire ampacity."
+  },
+  {
+    "path": "/upgrade",
+    "title": "Codewire Pro — Cloud Sync, Unlimited Jobs, PDF Export",
+    "description": "Codewire Pro is $6/month or $45/year. Eligible first-time subscribers receive a 7-day trial. The NEC calculators stay free; Pro adds cloud sync across devices, unlimited saved jobs, and PDF report export."
+  },
+  {
+    "path": "/voltage-drop-guide",
+    "title": "How to Calculate Voltage Drop (NEC Guide) — Codewire",
+    "description": "A practical guide to calculating voltage drop per the NEC: the formula, copper vs aluminum, the 3% / 5% limits, a worked example, and how to fix excessive drop."
+  },
+  {
+    "path": "/conduit-fill-guide",
+    "title": "How to Calculate Conduit Fill (NEC Chapter 9) — Codewire",
+    "description": "How to calculate conduit fill per NEC Chapter 9: the 53/31/40% rule, using Tables 1, 4, and 5, a worked example, and the fastest way to find the right conduit size."
+  },
+  {
+    "path": "/codewire-vs-uglys",
+    "title": "Codewire vs Ugly's Electrical References — Codewire",
+    "description": "How Codewire's free NEC calculators compare to Ugly's Electrical References: speed, always-current data, saving jobs, and cost."
+  },
+  {
+    "path": "/wire-size-chart",
+    "title": "What Size Wire Do I Need? NEC Wire Size Chart by Amperage — Codewire",
+    "description": "NEC wire size chart by amperage for copper and aluminum (75°C). Find what size wire you need for 20, 30, 50, 100, or 200 amps, plus how derating, terminations, and voltage drop change the answer."
+  },
+  {
+    "path": "/box-fill-guide",
+    "title": "How to Calculate Box Fill (NEC 314.16) — Codewire",
+    "description": "How to calculate electrical box fill per NEC 314.16: the cubic-inch allowance per wire size, how to count conductors, devices, clamps and grounds, and a worked example."
+  },
+  {
+    "path": "/conduit-bending-guide",
+    "title": "How to Bend Conduit: Offsets, Saddles & Multipliers — Codewire",
+    "description": "How to bend conduit: offset multipliers (10°, 22.5°, 30°, 45°, 60°), shrink, three- and four-point saddles, and 90° stub-up take-up, with the formulas electricians use."
+  }
+]
