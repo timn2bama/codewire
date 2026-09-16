@@ -192,6 +192,7 @@ export default function ConduitBendingPage() {
       }}
     >
       <Segmented
+        label="Bend type"
         value={s.mode}
         onChange={(v) => set("mode", v)}
         options={[
