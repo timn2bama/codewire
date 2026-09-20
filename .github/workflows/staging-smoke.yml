@@ -1,0 +1,45 @@
+name: Staging smoke
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: codewire-staging-smoke
+  cancel-in-progress: false
+
+jobs:
+  verify-staging:
+    environment: staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run isolated staging checks
+        run: npm run test:staging
+        env:
+          STAGING_APP_URL: ${{ vars.STAGING_APP_URL }}
+          STAGING_SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL }}
+          STAGING_SUPABASE_ANON_KEY: ${{ secrets.STAGING_SUPABASE_ANON_KEY }}
+          STAGING_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.STAGING_SUPABASE_SERVICE_ROLE_KEY }}
+          STAGING_TEST_PRO_EMAIL: ${{ secrets.STAGING_TEST_PRO_EMAIL }}
+          STAGING_TEST_PRO_PASSWORD: ${{ secrets.STAGING_TEST_PRO_PASSWORD }}
+          STAGING_TEST_FREE_EMAIL: ${{ secrets.STAGING_TEST_FREE_EMAIL }}
+          STAGING_TEST_FREE_PASSWORD: ${{ secrets.STAGING_TEST_FREE_PASSWORD }}
+          STAGING_STRIPE_SECRET_KEY: ${{ secrets.STAGING_STRIPE_SECRET_KEY }}
+          STAGING_STRIPE_WEBHOOK_SECRET: ${{ secrets.STAGING_STRIPE_WEBHOOK_SECRET }}
+          STAGING_STRIPE_PRICE_MONTHLY: ${{ secrets.STAGING_STRIPE_PRICE_MONTHLY }}
+          STAGING_STRIPE_PRICE_YEARLY: ${{ secrets.STAGING_STRIPE_PRICE_YEARLY }}
