@@ -6,6 +6,12 @@ const { Client } = pg
 const LOCAL_DATABASE_URL =
   process.env.SUPABASE_DB_URL ??
   'postgresql://postgres:postgres@127.0.0.1:54322/postgres'
+const EXPECTED_LOCAL_PORT =
+  process.env.CODEWIRE_LOCAL_DB_PORT?.trim() || '54322'
+
+if (!/^\d{2,5}$/.test(EXPECTED_LOCAL_PORT)) {
+  throw new Error('CODEWIRE_LOCAL_DB_PORT must be a valid TCP port')
+}
 
 const parsedDatabaseUrl = new URL(LOCAL_DATABASE_URL)
 const localHosts = new Set(['127.0.0.1', '[::1]'])
@@ -15,14 +21,14 @@ const databasePassword = decodeURIComponent(parsedDatabaseUrl.password)
 if (
   !['postgres:', 'postgresql:'].includes(parsedDatabaseUrl.protocol) ||
   !localHosts.has(parsedDatabaseUrl.hostname) ||
-  parsedDatabaseUrl.port !== '54322' ||
+  parsedDatabaseUrl.port !== EXPECTED_LOCAL_PORT ||
   parsedDatabaseUrl.pathname !== '/postgres' ||
   databaseUser !== 'postgres' ||
   parsedDatabaseUrl.search !== '' ||
   parsedDatabaseUrl.hash !== ''
 ) {
   throw new Error(
-    'Checkout concurrency tests refuse non-local databases; expected postgres on loopback port 54322/postgres with no URL options.',
+    `Checkout concurrency tests refuse non-local databases; expected postgres on loopback port ${EXPECTED_LOCAL_PORT}/postgres with no URL options.`,
   )
 }
 

@@ -131,8 +131,21 @@ try {
     p_job_rows: [{ ...job, id: `${runId}-forged`, user_id: freeUser.id }],
     p_calc_rows: [],
   });
-  if (!forgedWrite.error || forgedWrite.error.code !== "42501") {
-    throw new Error("Cloud sync accepted a row owned by another account");
+  if (forgedWrite.error) throw forgedWrite.error;
+  const forgedRow = forgedWrite.data?.jobs?.find(
+    (row) => row.id === `${runId}-forged`,
+  );
+  if (!forgedRow || forgedRow.user_id !== proUser.id) {
+    throw new Error("Cloud sync trusted a client-supplied owner");
+  }
+
+  const forgedCrossAccountRead = await freeClient
+    .from("jobs")
+    .select("id")
+    .eq("id", `${runId}-forged`);
+  if (forgedCrossAccountRead.error) throw forgedCrossAccountRead.error;
+  if (forgedCrossAccountRead.data.length !== 0) {
+    throw new Error("RLS exposed the ownership-forgery probe to another account");
   }
 
   console.log("Staging auth, entitlement, RLS, and cloud-sync checks passed.");
@@ -148,7 +161,7 @@ try {
       .from("jobs")
       .delete()
       .eq("user_id", proUser.id)
-      .eq("id", runId);
+      .in("id", [runId, `${runId}-forged`]);
     if (calcCleanup.error || jobCleanup.error) {
       console.error("Staging cleanup failed; remove rows with id prefix:", runId);
       process.exitCode = 1;

@@ -55,6 +55,39 @@ jobs:
         with:
           version: 2.115.0
 
+      - name: Select isolated Supabase ports
+        shell: bash
+        run: |
+          set -euo pipefail
+          read -r db_port shadow_port < <(
+            python3 - <<'PY'
+          import socket
+
+          sockets = []
+          ports = []
+          for _ in range(2):
+              sock = socket.socket()
+              sock.bind(("127.0.0.1", 0))
+              sockets.append(sock)
+              ports.append(sock.getsockname()[1])
+          print(*ports)
+          for sock in sockets:
+              sock.close()
+          PY
+          )
+          sed -i "0,/port = 54322/s//port = ${db_port}/" supabase/config.toml
+          sed -i "0,/shadow_port = 54320/s//shadow_port = ${shadow_port}/" supabase/config.toml
+          echo "CODEWIRE_LOCAL_DB_PORT=${db_port}" >> "$GITHUB_ENV"
+          echo "SUPABASE_DB_URL=postgresql://postgres:postgres@127.0.0.1:${db_port}/postgres" >> "$GITHUB_ENV"
+          echo "Selected Supabase database ports: db=${db_port}, shadow=${shadow_port}"
+
+      - name: Clean stale local Supabase resources
+        shell: bash
+        run: |
+          supabase stop --no-backup || true
+          docker ps -a --format 'table {{.ID}}\t{{.Names}}\t{{.Ports}}'
+          ss -ltnp || true
+
       # pgTAP only needs Postgres; exclude every optional local service.
       - name: Start local Supabase database
         id: supabase_start
