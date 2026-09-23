@@ -23,6 +23,11 @@ updates:
           - "*"
         exclude-patterns:
           - stripe
+          # React upgrades receive a dedicated bundle and compatibility review.
+          - react
+          - react-dom
+          - "@types/react"
+          - "@types/react-dom"
         update-types:
           - minor
           - patch
