@@ -18,6 +18,18 @@ updates:
         update-types:
           - version-update:semver-major
     groups:
+      # React runtime and type packages must advance together. React rejects
+      # mixed react/react-dom versions at runtime, and the type packages share
+      # the same minor-version compatibility boundary.
+      react-stack:
+        patterns:
+          - react
+          - react-dom
+          - "@types/react"
+          - "@types/react-dom"
+        update-types:
+          - minor
+          - patch
       routine-minor-and-patch:
         patterns:
           - "*"
