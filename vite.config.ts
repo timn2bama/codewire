@@ -4,6 +4,26 @@ import { VitePWA } from "vite-plugin-pwa";
 import path from "node:path";
 
 export default defineConfig({
+  build: {
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [
+            {
+              name: "react-vendor",
+              test: /node_modules[\\/](?:react|react-dom|react-router|react-router-dom|scheduler)[\\/]/,
+              priority: 20,
+            },
+            {
+              name: "supabase-vendor",
+              test: /node_modules[\\/]@supabase[\\/]/,
+              priority: 15,
+            },
+          ],
+        },
+      },
+    },
+  },
   plugins: [
     react(),
     VitePWA({
