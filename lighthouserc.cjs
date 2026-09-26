@@ -12,7 +12,7 @@ module.exports = {
         "largest-contentful-paint": ["warn", { maxNumericValue: 2500, aggregationMethod: "median" }],
         "total-blocking-time": ["warn", { maxNumericValue: 200, aggregationMethod: "median" }],
         "cumulative-layout-shift": ["error", { maxNumericValue: 0.1, aggregationMethod: "median" }],
-        "resource-summary:script:size": ["error", { maxNumericValue: 650000, aggregationMethod: "median" }],
+        "resource-summary:script:size": ["error", { maxNumericValue: 200000, aggregationMethod: "median" }],
       },
     },
     upload: { target: "filesystem", outputDir: "./lighthouse-reports" },

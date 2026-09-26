@@ -9,8 +9,8 @@ client includes its authentication SDK. It audits the homepage, voltage drop,
 and ampacity with three simulated mobile runs per page and median assertions.
 
 Enforced budgets: cumulative layout shift <= 0.1 and loaded script transfer
-size <= 650,000 bytes. The local static server does not compress scripts, so
-the script budget measures uncompressed transfer rather than production gzip.
+size <= 200,000 bytes. Lighthouse records compressed network transfer sizes;
+the initial homepage measurement was 157,635 bytes of scripts.
 LCP above 2.5 seconds and total blocking time above 200 milliseconds emit
 warnings until repeated hosted measurements establish stable timing limits.
 
