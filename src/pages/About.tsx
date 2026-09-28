@@ -113,7 +113,7 @@ export default function About() {
         Found a bug, a wrong number, or want a feature? Email{" "}
         <a
           href="mailto:codewire.tools@gmail.com?subject=Codewire%20feedback"
-          className="font-semibold text-brand"
+          className="inline-flex min-h-6 items-center font-semibold text-brand"
         >
           codewire.tools@gmail.com
         </a>{" "}

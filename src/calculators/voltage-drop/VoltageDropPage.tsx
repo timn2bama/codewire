@@ -184,7 +184,7 @@ export default function VoltageDropPage() {
           <span className="text-amber-300">valid inputs required</span>
         ) : recommended ? (
           <button
-            className="font-semibold text-brand underline-offset-2 hover:underline"
+            className="inline-flex min-h-6 items-center font-semibold text-brand underline-offset-2 hover:underline"
             onClick={() => set("size", recommended)}
           >
             {sizeLabel(recommended)} →

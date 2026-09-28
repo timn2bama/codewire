@@ -247,7 +247,7 @@ function SyncAndBackupPanelForScope() {
       </div>
 
       {!authLoading && !user && cloudEnabled && (
-        <Link to="/login?next=%2Fjobs" className="mt-3 inline-block text-sm font-medium text-brand">
+        <Link to="/login?next=%2Fjobs" className="mt-3 inline-flex min-h-6 items-center text-sm font-medium text-brand">
           Sign in for cloud sync
         </Link>
       )}

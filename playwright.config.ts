@@ -15,6 +15,13 @@ export default defineConfig({
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
     },
+    {
+      // Mobile viewport coverage. Pixel 7 runs on the same Chromium build the
+      // desktop project already installs, so CI needs no extra browser download.
+      // Without this project nothing in CI ever renders the app at phone width.
+      name: "mobile-chromium",
+      use: { ...devices["Pixel 7"] },
+    },
   ],
   webServer: {
     command: "npm run preview -- --host 127.0.0.1 --port 4173",
