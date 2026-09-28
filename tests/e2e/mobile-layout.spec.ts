@@ -32,30 +32,9 @@ const TOUCH_TARGET_FLOOR = 24;
 // A loaded CI runner needs more than the 5 s default for a route to mount.
 const ROUTE_RENDER_TIMEOUT = 20_000;
 
-// Known, unfixed shortfalls measured on 2026-09-27. Every entry is a real
-// touch-target defect, not a tolerated one:
-//   "/"                - seven footer links (Voltage drop, Conduit fill, Wire
-//                        size chart, Box fill, Bending, vs Ugly's, contact
-//                        address) render 14 px tall at phone width.
-//   "/voltage-drop"    - "smallest wire that fits" recommendation chip, 20 px.
-//   "/conduit-fill"    - "smallest conduit that fits" chip, 20 px.
-//   "/ampacity"        - "smallest wire that fits" chip, 20 px.
-//   "/box-fill"        - 20 x 20 "Internal cable clamps present" checkbox.
-//   "/about"           - contact address link, 16 px tall (guide pages render
-//                        the same link at a compliant size).
-//   "/jobs"            - 1 x 1 hidden file input (not user-facing).
-// These counts may only go DOWN. When the CSS is corrected, delete this map and
-// replace the ratchet assertion below with `undersized` being empty.
-const MAX_UNDERSIZED_CONTROLS: Record<string, number> = {
-  "/": 7,
-  "/jobs": 1,
-  "/voltage-drop": 1,
-  "/conduit-fill": 1,
-  "/ampacity": 1,
-  "/box-fill": 1,
-  "/about": 1,
-  "/conduit-bending": 0,
-};
+// Screen-reader-only controls (.sr-only) are 1x1 by design - they are driven by
+// a visible labelled button - so they are not touch targets and are excluded
+// from the measurement below. With them excluded, every route must be clean.
 
 test.describe("mobile layout", () => {
   // These assertions are only meaningful in a phone-sized emulated browser.
@@ -165,7 +144,7 @@ test.describe("mobile layout", () => {
     }
   });
 
-  test("does not add new under-sized touch targets", async ({ page }) => {
+  test("has no touch target below the minimum size", async ({ page }) => {
     for (const route of ROUTES) {
       await page.goto(route);
       await expect(
@@ -180,6 +159,7 @@ test.describe("mobile layout", () => {
           ),
         )
           .filter((element) => element.getClientRects().length > 0)
+          .filter((element) => !element.closest(".sr-only"))
           .map((element) => {
             const rect = element.getBoundingClientRect();
             return {
@@ -203,13 +183,12 @@ test.describe("mobile layout", () => {
           .map((control) => `${control.label} (${control.width}x${control.height})`),
       TOUCH_TARGET_FLOOR);
 
-      const allowed = MAX_UNDERSIZED_CONTROLS[route] ?? 0;
       expect(
-        undersized.length,
-        `${route} now has ${undersized.length} under-sized touch targets (limit ${allowed}): ${undersized
+        undersized,
+        `${route} has ${undersized.length} under-sized touch targets: ${undersized
           .slice(0, 8)
           .join(", ")}`,
-      ).toBeLessThanOrEqual(allowed);
+      ).toEqual([]);
     }
   });
 });

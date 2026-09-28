@@ -250,7 +250,7 @@ export default function ConduitFillPage() {
           <span className="text-amber-300">valid quantities required</span>
         ) : recommended ? (
           <button
-            className="font-semibold text-brand underline-offset-2 hover:underline"
+            className="inline-flex min-h-6 items-center font-semibold text-brand underline-offset-2 hover:underline"
             onClick={() => setS((p) => ({ ...p, tradeSize: recommended }))}
           >
             {recommended} →

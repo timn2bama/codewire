@@ -106,27 +106,27 @@ export default function Home() {
 
       <div className="mt-8 border-t border-slate-800 pt-4 text-center text-xs leading-relaxed text-slate-500">
         <span className="text-slate-600">Guides: </span>
-        <Link to="/voltage-drop-guide" className="text-slate-400 hover:text-brand">
+        <Link to="/voltage-drop-guide" className="inline-flex min-h-6 items-center text-slate-400 hover:text-brand">
           Voltage drop
         </Link>
         {" · "}
-        <Link to="/conduit-fill-guide" className="text-slate-400 hover:text-brand">
+        <Link to="/conduit-fill-guide" className="inline-flex min-h-6 items-center text-slate-400 hover:text-brand">
           Conduit fill
         </Link>
         {" · "}
-        <Link to="/wire-size-chart" className="text-slate-400 hover:text-brand">
+        <Link to="/wire-size-chart" className="inline-flex min-h-6 items-center text-slate-400 hover:text-brand">
           Wire size chart
         </Link>
         {" · "}
-        <Link to="/box-fill-guide" className="text-slate-400 hover:text-brand">
+        <Link to="/box-fill-guide" className="inline-flex min-h-6 items-center text-slate-400 hover:text-brand">
           Box fill
         </Link>
         {" · "}
-        <Link to="/conduit-bending-guide" className="text-slate-400 hover:text-brand">
+        <Link to="/conduit-bending-guide" className="inline-flex min-h-6 items-center text-slate-400 hover:text-brand">
           Bending
         </Link>
         {" · "}
-        <Link to="/codewire-vs-uglys" className="text-slate-400 hover:text-brand">
+        <Link to="/codewire-vs-uglys" className="inline-flex min-h-6 items-center text-slate-400 hover:text-brand">
           vs Ugly's
         </Link>
       </div>
@@ -138,7 +138,7 @@ export default function Home() {
         Feedback?{" "}
         <a
           href="mailto:codewire.tools@gmail.com?subject=Codewire%20feedback"
-          className="text-brand"
+          className="inline-flex min-h-6 items-center text-brand"
         >
           codewire.tools@gmail.com
         </a>

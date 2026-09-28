@@ -46,25 +46,36 @@ export default function AmpacityPage() {
     setS((p) => ({ ...p, [k]: v }));
 
   const num = (v: number | "") => (v === "" ? 0 : v);
+
+  // 310.15(C)(1) adjusts for a real bundled count. 0 or blank is an incomplete
+  // input; it used to be silently coerced to 1 (the no-adjustment case) and a
+  // result was still rendered, which reads like a computed answer.
+  const currentCarrying = num(s.currentCarrying);
+  const currentCarryingInvalid =
+    s.currentCarrying === "" ||
+    !Number.isFinite(currentCarrying) ||
+    !Number.isInteger(currentCarrying) ||
+    currentCarrying < 1;
+
   const input = {
     material: s.material,
     size: s.size,
     tempRating: s.tempRating,
     ambientC: num(s.ambientC),
-    currentCarrying: num(s.currentCarrying) || 1,
+    currentCarrying: currentCarrying || 1,
     terminationRating: s.terminationRating,
   };
 
   const r = calcAmpacity(input);
   const load = num(s.load);
   const recommended =
-    load > 0
+    load > 0 && !currentCarryingInvalid
       ? recommendAmpacitySize(
           {
             material: s.material,
             tempRating: s.tempRating,
             ambientC: num(s.ambientC),
-            currentCarrying: num(s.currentCarrying) || 1,
+            currentCarrying: currentCarrying || 1,
             terminationRating: s.terminationRating,
           },
           load,
@@ -78,17 +89,29 @@ export default function AmpacityPage() {
     <CalculatorShell
       title="Wire Ampacity"
       subtitle="Table 310.16 with derating"
-      saveData={{
-        calculatorId: "ampacity",
-        path: "/ampacity",
-        defaultTitle: "Wire Ampacity",
-        summary: `${s.material.toUpperCase()} ${sizeLabel(s.size)} @${s.tempRating}°C · ${num(
-          s.ambientC,
-        )}°C ambient · ${num(s.currentCarrying) || 1} cond`,
-        result: `${ampacityStr} usable`,
-        state: s,
-      }}
+      saveData={
+        currentCarryingInvalid
+          ? undefined
+          : {
+              calculatorId: "ampacity",
+              path: "/ampacity",
+              defaultTitle: "Wire Ampacity",
+              summary: `${s.material.toUpperCase()} ${sizeLabel(s.size)} @${s.tempRating}°C · ${num(
+                s.ambientC,
+              )}°C ambient · ${currentCarrying} cond`,
+              result: `${ampacityStr} usable`,
+              state: s,
+            }
+      }
       result={
+        currentCarryingInvalid ? (
+          <div
+            className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-200"
+            role="status"
+          >
+            Enter a whole number of current-carrying conductors (1 or more).
+          </div>
+        ) : (
         <ResultCard
           primary={ampacityStr}
           primaryLabel="Usable ampacity"
@@ -103,6 +126,7 @@ export default function AmpacityPage() {
           passText={`carries ${load} A`}
           failText={`< ${load} A`}
         />
+        )
       }
     >
       <Segmented
@@ -138,6 +162,9 @@ export default function AmpacityPage() {
             label="# current-carrying"
             value={s.currentCarrying}
             min={1}
+            step={1}
+            invalid={currentCarryingInvalid}
+            error="Enter a whole number of conductors (1 or more)."
             onChange={(v) => set("currentCarrying", v)}
           />
           <SelectField
@@ -159,7 +186,7 @@ export default function AmpacityPage() {
         <span className="text-slate-400">Smallest size for {load || 0} A: </span>
         {load > 0 && recommended ? (
           <button
-            className="font-semibold text-brand underline-offset-2 hover:underline"
+            className="inline-flex min-h-6 items-center font-semibold text-brand underline-offset-2 hover:underline"
             onClick={() => set("size", recommended)}
           >
             {sizeLabel(recommended)} →

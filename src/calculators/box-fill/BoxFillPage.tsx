@@ -58,44 +58,71 @@ export default function BoxFillPage() {
       conductors: p.conductors.filter((_, idx) => idx !== i),
     }));
 
-  const r = calcBoxFill({
-    boxVolume: num(s.boxVolume),
-    conductors: s.conductors.map((c) => ({
-      size: c.size,
-      quantity: num(c.quantity),
-    })),
-    devices: num(s.devices),
-    hasClamps: s.hasClamps,
-    groundSize: s.groundSize === "none" ? undefined : s.groundSize,
-  });
+  const boxVolume = num(s.boxVolume);
+
+  // A zero box volume or a zero conductor quantity is an incomplete input, not
+  // a 0% fill. Previously both rendered "Too small" with "Fill: 0%", which
+  // looked like a real result for an input that cannot be evaluated.
+  const boxVolumeInvalid =
+    s.boxVolume === "" || !Number.isFinite(boxVolume) || boxVolume <= 0;
+  const quantityInvalid = (c: Row) =>
+    !Number.isFinite(num(c.quantity)) ||
+    !Number.isInteger(num(c.quantity)) ||
+    num(c.quantity) <= 0;
+  const valid = !boxVolumeInvalid && !s.conductors.some(quantityInvalid);
+
+  const r = valid
+    ? calcBoxFill({
+        boxVolume,
+        conductors: s.conductors.map((c) => ({
+          size: c.size,
+          quantity: num(c.quantity),
+        })),
+        devices: num(s.devices),
+        hasClamps: s.hasClamps,
+        groundSize: s.groundSize === "none" ? undefined : s.groundSize,
+      })
+    : null;
 
   return (
     <CalculatorShell
       title="Box Fill"
       subtitle="NEC 314.16"
-      saveData={{
+      saveData={
+        r ? {
         calculatorId: "box-fill",
         path: "/box-fill",
         defaultTitle: "Box Fill",
-        summary: `${num(s.boxVolume)} in³ box · ${s.conductors.reduce(
+        summary: `${boxVolume} in³ box · ${s.conductors.reduce(
           (n, c) => n + num(c.quantity),
           0,
         )} conductors · ${num(s.devices)} device(s)`,
         result: `${r.requiredVolume.toFixed(2)} in³ required — ${r.pass ? "fits" : "too small"}`,
         state: s,
-      }}
+      } : undefined
+      }
       result={
-        <ResultCard
-          primary={`${r.requiredVolume.toFixed(2)} in³`}
-          primaryLabel={`Required (box ${num(s.boxVolume)} in³)`}
-          stats={[
-            { label: "Remaining", value: `${r.remaining.toFixed(2)} in³` },
-            { label: "Fill", value: `${r.fillPercent.toFixed(0)}%` },
-          ]}
-          pass={r.pass}
-          passText="Fits"
-          failText="Too small"
-        />
+        r ? (
+          <ResultCard
+            primary={`${r.requiredVolume.toFixed(2)} in³`}
+            primaryLabel={`Required (box ${boxVolume} in³)`}
+            stats={[
+              { label: "Remaining", value: `${r.remaining.toFixed(2)} in³` },
+              { label: "Fill", value: `${r.fillPercent.toFixed(0)}%` },
+            ]}
+            pass={r.pass}
+            passText="Fits"
+            failText="Too small"
+          />
+        ) : (
+          <div
+            className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-200"
+            role="status"
+          >
+            Enter a box volume greater than zero and a positive whole-number
+            quantity for every conductor.
+          </div>
+        )
       }
     >
       <div className="grid grid-cols-2 gap-4">
@@ -104,6 +131,8 @@ export default function BoxFillPage() {
           unit="in³"
           step={0.5}
           value={s.boxVolume}
+          invalid={boxVolumeInvalid}
+          error="Enter a box volume greater than zero."
           onChange={(v) => setS((p) => ({ ...p, boxVolume: v }))}
         />
         <SelectField
@@ -150,6 +179,8 @@ export default function BoxFillPage() {
                   label="Qty"
                   min={1}
                   value={c.quantity}
+                  invalid={quantityInvalid(c)}
+                  error="Enter a whole-number quantity greater than zero."
                   onChange={(v) => updateRow(i, { quantity: v === "" ? 0 : v })}
                 />
               </div>
@@ -186,7 +217,7 @@ export default function BoxFillPage() {
       <label className="flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-900 p-3">
         <input
           type="checkbox"
-          className="h-5 w-5 accent-brand"
+          className="h-6 w-6 accent-brand"
           checked={s.hasClamps}
           onChange={(e) => setS((p) => ({ ...p, hasClamps: e.target.checked }))}
         />
