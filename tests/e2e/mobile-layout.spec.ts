@@ -14,8 +14,17 @@ const routeMetadata = JSON.parse(
   ),
 ) as RouteMetadataEntry[];
 
-// "/" and "/jobs" render without auth and are not described by routeMetadata.json.
-const ROUTES = ["/", ...routeMetadata.map((entry) => entry.path), "/jobs"];
+// "/", "/jobs", "/terms" and "/privacy" render without auth and are not
+// described by routeMetadata.json (it only carries the indexable marketing and
+// calculator routes), so they have to be listed explicitly.
+const LEGAL_ROUTES = ["/terms", "/privacy"] as const;
+
+const ROUTES = [
+  "/",
+  ...routeMetadata.map((entry) => entry.path),
+  "/jobs",
+  ...LEGAL_ROUTES,
+];
 
 const CALCULATORS = [
   "/voltage-drop",

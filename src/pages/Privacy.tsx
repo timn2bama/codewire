@@ -91,7 +91,10 @@ export default function Privacy() {
           <p>
             We may update this policy; material changes will be reflected by the
             date above. Questions or data requests:{" "}
-            <a href="mailto:codewire.tools@gmail.com" className="text-brand">
+            <a
+              href="mailto:codewire.tools@gmail.com"
+              className="inline-flex min-h-6 items-center text-brand"
+            >
               codewire.tools@gmail.com
             </a>
             .

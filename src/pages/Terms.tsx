@@ -109,7 +109,7 @@ export default function Terms() {
           <p>
             Free data is stored on your device; Pro data also syncs to our cloud
             provider. See the{" "}
-            <Link to="/privacy" className="text-brand">
+            <Link to="/privacy" className="inline-flex min-h-6 items-center text-brand">
               Privacy Policy
             </Link>
             .
@@ -135,7 +135,10 @@ export default function Terms() {
         <Section title="Contact">
           <p>
             Questions:{" "}
-            <a href="mailto:codewire.tools@gmail.com" className="text-brand">
+            <a
+              href="mailto:codewire.tools@gmail.com"
+              className="inline-flex min-h-6 items-center text-brand"
+            >
               codewire.tools@gmail.com
             </a>
             .
