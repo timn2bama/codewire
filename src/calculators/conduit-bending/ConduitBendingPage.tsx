@@ -54,6 +54,22 @@ export default function ConduitBendingPage() {
     setS((p) => ({ ...p, [k]: v }));
   const num = (v: number | "") => (v === "" ? 0 : v);
 
+  // A zero or blank bend dimension rendered a flat 0.00" result, which reads
+  // like a computed answer. Every mode needs a positive, finite dimension.
+  const incomplete = (v: number | "") =>
+    v === "" || !Number.isFinite(num(v)) || num(v) <= 0;
+  const incompleteResult = (message: string) => (
+    <div
+      className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-200"
+      role="status"
+    >
+      {message}
+    </div>
+  );
+
+  // Assigned in every branch of the exhaustive mode chain below.
+  let invalid: boolean;
+
   let result;
   let inputs;
   let saveSummary: string;
@@ -61,9 +77,14 @@ export default function ConduitBendingPage() {
 
   if (s.mode === "offset") {
     const r = calcOffset(num(s.offsetHeight), s.angle);
+    invalid = incomplete(s.offsetHeight);
     saveSummary = `Offset · ${inch(num(s.offsetHeight))} @ ${s.angle}°`;
     saveResult = `${inch(r.distanceBetweenMarks)} between marks · ${inch(r.shrink)} shrink`;
-    result = (
+    result = invalid ? (
+      incompleteResult(
+        "Enter a positive, finite offset height to calculate the bend.",
+      )
+    ) : (
       <ResultCard
         primary={inch(r.distanceBetweenMarks)}
         primaryLabel="Distance between marks"
@@ -80,6 +101,8 @@ export default function ConduitBendingPage() {
           unit="in"
           step={0.25}
           value={s.offsetHeight}
+          invalid={invalid}
+          error="Enter an offset height greater than zero."
           onChange={(v) => set("offsetHeight", v)}
         />
         <SelectField
@@ -92,9 +115,14 @@ export default function ConduitBendingPage() {
     );
   } else if (s.mode === "saddle3") {
     const r = calcThreePointSaddle(num(s.saddleDepth));
+    invalid = incomplete(s.saddleDepth);
     saveSummary = `3-pt saddle · ${inch(num(s.saddleDepth))} deep`;
     saveResult = `${inch(r.outerMarkDistance)} to outer marks · ${inch(r.shrink)} shrink`;
-    result = (
+    result = invalid ? (
+      incompleteResult(
+        "Enter a positive, finite obstruction depth to calculate the bend.",
+      )
+    ) : (
       <ResultCard
         primary={inch(r.outerMarkDistance)}
         primaryLabel="Center → each outer mark"
@@ -108,6 +136,8 @@ export default function ConduitBendingPage() {
           unit="in"
           step={0.25}
           value={s.saddleDepth}
+          invalid={invalid}
+          error="Enter an obstruction depth greater than zero."
           onChange={(v) => set("saddleDepth", v)}
         />
         <p className="text-sm text-slate-500">
@@ -117,9 +147,14 @@ export default function ConduitBendingPage() {
     );
   } else if (s.mode === "saddle4") {
     const r = calcFourPointSaddle(num(s.saddle4Depth), s.saddle4Angle);
+    invalid = incomplete(s.saddle4Depth);
     saveSummary = `4-pt saddle · ${inch(num(s.saddle4Depth))} @ ${s.saddle4Angle}°`;
     saveResult = `${inch(r.riseDistance)} outer→inner · ${inch(r.shrink)} shrink`;
-    result = (
+    result = invalid ? (
+      incompleteResult(
+        "Enter a positive, finite obstruction depth to calculate the bend.",
+      )
+    ) : (
       <ResultCard
         primary={inch(r.riseDistance)}
         primaryLabel="Each outer → inner mark"
@@ -136,6 +171,8 @@ export default function ConduitBendingPage() {
           unit="in"
           step={0.25}
           value={s.saddle4Depth}
+          invalid={invalid}
+          error="Enter an obstruction depth greater than zero."
           onChange={(v) => set("saddle4Depth", v)}
         />
         <SelectField
@@ -149,9 +186,14 @@ export default function ConduitBendingPage() {
   } else {
     const takeUp = TAKE_UP[s.takeUpSize];
     const mark = calcStub90(num(s.stubHeight), takeUp);
+    invalid = incomplete(s.stubHeight);
     saveSummary = `90° stub · ${inch(num(s.stubHeight))} on ${s.takeUpSize}`;
     saveResult = `Mark at ${inch(mark)} (take-up ${inch(takeUp)})`;
-    result = (
+    result = invalid ? (
+      incompleteResult(
+        "Enter a positive, finite stub height to calculate the bend.",
+      )
+    ) : (
       <ResultCard
         primary={inch(mark)}
         primaryLabel="Mark from end of conduit"
@@ -165,6 +207,8 @@ export default function ConduitBendingPage() {
           unit="in"
           step={0.25}
           value={s.stubHeight}
+          invalid={invalid}
+          error="Enter a stub height greater than zero."
           onChange={(v) => set("stubHeight", v)}
         />
         <SelectField
@@ -182,14 +226,18 @@ export default function ConduitBendingPage() {
       title="Conduit Bending"
       subtitle="Offsets, saddles & stubs"
       result={result}
-      saveData={{
-        calculatorId: "conduit-bending",
-        path: "/conduit-bending",
-        defaultTitle: "Conduit Bend",
-        summary: saveSummary,
-        result: saveResult,
-        state: s,
-      }}
+      saveData={
+        invalid
+          ? undefined
+          : {
+              calculatorId: "conduit-bending",
+              path: "/conduit-bending",
+              defaultTitle: "Conduit Bend",
+              summary: saveSummary,
+              result: saveResult,
+              state: s,
+            }
+      }
     >
       <Segmented
         label="Bend type"
