@@ -186,12 +186,23 @@ export default function ConduitBendingPage() {
   } else {
     const takeUp = TAKE_UP[s.takeUpSize];
     const mark = calcStub90(num(s.stubHeight), takeUp);
-    invalid = incomplete(s.stubHeight);
+    // The mark is measured from the end of the conduit, so a stub shorter than
+    // the take-up subtracts past the conduit end and the formula returns a
+    // negative mark (-2.00" for a 3" stub on 1/2" EMT). That is not a bend
+    // anyone can make, and it used to render as an ordinary result. A stub
+    // exactly equal to the take-up (mark 0.00") is the documented minimum stub
+    // and stays valid.
+    const stubTooShort = !incomplete(s.stubHeight) && mark < 0;
+    invalid = incomplete(s.stubHeight) || stubTooShort;
     saveSummary = `90° stub · ${inch(num(s.stubHeight))} on ${s.takeUpSize}`;
     saveResult = `Mark at ${inch(mark)} (take-up ${inch(takeUp)})`;
     result = invalid ? (
       incompleteResult(
-        "Enter a positive, finite stub height to calculate the bend.",
+        stubTooShort
+          ? `A ${inch(num(s.stubHeight))} stub is shorter than the ${s.takeUpSize} take-up of ${inch(
+              takeUp,
+            )} — a bend this short cannot be made.`
+          : "Enter a positive, finite stub height to calculate the bend.",
       )
     ) : (
       <ResultCard
@@ -208,7 +219,11 @@ export default function ConduitBendingPage() {
           step={0.25}
           value={s.stubHeight}
           invalid={invalid}
-          error="Enter a stub height greater than zero."
+          error={
+            stubTooShort
+              ? `Enter a stub height of at least ${inch(takeUp)} for ${s.takeUpSize} conduit.`
+              : "Enter a stub height greater than zero."
+          }
           onChange={(v) => set("stubHeight", v)}
         />
         <SelectField
