@@ -32,3 +32,36 @@ test("a zero current-carrying count suppresses the ampacity result", async ({
   await expect(result).toBeVisible();
   await expect(save).toBeVisible();
 });
+
+test("a blank ambient temperature suppresses the ampacity result", async ({
+  page,
+}) => {
+  await page.goto("/ampacity");
+
+  const ambient = page.getByLabel("Ambient temp");
+  const save = page.getByRole("button", { name: "Save", exact: true });
+  const result = page.getByText("Usable ampacity");
+
+  await expect(result).toBeVisible();
+
+  // Blank was read as 0 °C, the coldest 310.15(B)(1) row, whose correction
+  // factor is above 1 — so the card reported a "Derated" figure larger than
+  // the "Base" ampacity, which no derating table can produce.
+  await ambient.fill("");
+  await expect(
+    page.getByText("Enter an ambient temperature in °C."),
+  ).toBeVisible();
+  await expect(
+    page.getByText(
+      "Enter an ambient temperature in °C (Table 310.15(B)(1) is based on 30 °C).",
+    ),
+  ).toBeVisible();
+  await expect(page.getByText("Derated")).toHaveCount(0);
+  await expect(result).toHaveCount(0);
+  await expect(save).toHaveCount(0);
+
+  // A real ambient temperature restores the result and the save affordance.
+  await ambient.fill("30");
+  await expect(result).toBeVisible();
+  await expect(save).toBeVisible();
+});
