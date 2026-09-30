@@ -58,3 +58,44 @@ test("invalid conduit-bending dimensions suppress the result and saving", async 
     await expect(save).toBeVisible();
   }
 });
+
+test("a 90° stub shorter than the take-up cannot produce a mark", async ({
+  page,
+}) => {
+  await page.goto("/conduit-bending");
+  await page.getByRole("button", { name: "90°", exact: true }).click();
+
+  const stub = page.getByLabel("Desired stub height");
+  const size = page.getByLabel("Conduit size (take-up)");
+  const save = page.getByRole("button", { name: "Save", exact: true });
+  const markCard = page.getByText("Mark from end of conduit");
+
+  // 1/2" EMT has a 5" take-up, so a 3" stub subtracts past the end of the
+  // conduit and calcStub90 returns -2.00". The old build printed that negative
+  // number as an ordinary result, alongside a "Save" button.
+  await size.selectOption('1/2"');
+  await stub.fill("3");
+  await expect(
+    page.getByText('A 3.00" stub is shorter than the 1/2" take-up of 5.00" — a bend this short cannot be made.'),
+  ).toBeVisible();
+  await expect(markCard).toHaveCount(0);
+  await expect(save).toHaveCount(0);
+
+  // The minimum bendable stub equals the take-up, so a 5" stub is still valid.
+  await stub.fill("5");
+  await expect(markCard).toBeVisible();
+  await expect(page.getByText('0.00"').first()).toBeVisible();
+  await expect(save).toBeVisible();
+
+  // A larger conduit takes up more, so a stub that fitted 1/2" no longer does.
+  await size.selectOption('2"');
+  await expect(page.getByText(/cannot be made\./)).toBeVisible();
+  await expect(markCard).toHaveCount(0);
+  await expect(save).toHaveCount(0);
+
+  // Back to a bendable stub: result and saving return.
+  await stub.fill("20");
+  await expect(markCard).toBeVisible();
+  await expect(page.getByText('4.00"').first()).toBeVisible();
+  await expect(save).toBeVisible();
+});
