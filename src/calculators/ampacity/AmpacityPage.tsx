@@ -57,11 +57,20 @@ export default function AmpacityPage() {
     !Number.isInteger(currentCarrying) ||
     currentCarrying < 1;
 
+  // A blank ambient was silently read as 0 °C, which the 310.15(B)(1) table
+  // maps to its coldest row — a correction factor above 1. The card then
+  // showed a "Derated" figure larger than the base ampacity, something no
+  // derating table can produce. Blank is an incomplete input, so the result
+  // is withheld rather than computed from an assumed temperature.
+  const ambientC = num(s.ambientC);
+  const ambientInvalid = s.ambientC === "" || !Number.isFinite(ambientC);
+  const invalid = ambientInvalid || currentCarryingInvalid;
+
   const input = {
     material: s.material,
     size: s.size,
     tempRating: s.tempRating,
-    ambientC: num(s.ambientC),
+    ambientC,
     currentCarrying: currentCarrying || 1,
     terminationRating: s.terminationRating,
   };
@@ -69,12 +78,12 @@ export default function AmpacityPage() {
   const r = calcAmpacity(input);
   const load = num(s.load);
   const recommended =
-    load > 0 && !currentCarryingInvalid
+    load > 0 && !invalid
       ? recommendAmpacitySize(
           {
             material: s.material,
             tempRating: s.tempRating,
-            ambientC: num(s.ambientC),
+            ambientC,
             currentCarrying: currentCarrying || 1,
             terminationRating: s.terminationRating,
           },
@@ -90,26 +99,26 @@ export default function AmpacityPage() {
       title="Wire Ampacity"
       subtitle="Table 310.16 with derating"
       saveData={
-        currentCarryingInvalid
+        invalid
           ? undefined
           : {
               calculatorId: "ampacity",
               path: "/ampacity",
               defaultTitle: "Wire Ampacity",
-              summary: `${s.material.toUpperCase()} ${sizeLabel(s.size)} @${s.tempRating}°C · ${num(
-                s.ambientC,
-              )}°C ambient · ${currentCarrying} cond`,
+              summary: `${s.material.toUpperCase()} ${sizeLabel(s.size)} @${s.tempRating}°C · ${ambientC}°C ambient · ${currentCarrying} cond`,
               result: `${ampacityStr} usable`,
               state: s,
             }
       }
       result={
-        currentCarryingInvalid ? (
+        invalid ? (
           <div
             className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-200"
             role="status"
           >
-            Enter a whole number of current-carrying conductors (1 or more).
+            {ambientInvalid
+              ? "Enter an ambient temperature in °C (Table 310.15(B)(1) is based on 30 °C)."
+              : "Enter a whole number of current-carrying conductors (1 or more)."}
           </div>
         ) : (
         <ResultCard
@@ -156,6 +165,8 @@ export default function AmpacityPage() {
             label="Ambient temp"
             unit="°C"
             value={s.ambientC}
+            invalid={ambientInvalid}
+            error="Enter an ambient temperature in °C."
             onChange={(v) => set("ambientC", v)}
           />
           <NumberField
