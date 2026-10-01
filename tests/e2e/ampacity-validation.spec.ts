@@ -60,8 +60,15 @@ test("a blank ambient temperature suppresses the ampacity result", async ({
   await expect(result).toHaveCount(0);
   await expect(save).toHaveCount(0);
 
+  // The factors footnote read the same blank as 0 °C — the coldest
+  // 310.15(B)(1) row, whose factor is 1.15 — and printed "ambient 1.15" right
+  // beside the message saying the temperature was missing. An incomplete
+  // input must not display a correction factor either.
+  await expect(page.getByText("Factors: ambient")).toHaveCount(0);
+
   // A real ambient temperature restores the result and the save affordance.
   await ambient.fill("30");
   await expect(result).toBeVisible();
   await expect(save).toBeVisible();
+  await expect(page.getByText("Factors: ambient")).toBeVisible();
 });
