@@ -209,11 +209,13 @@ export default function AmpacityPage() {
         )}
       </div>
 
-      <p className="text-xs text-slate-600">
-        Factors: ambient {r.ambientFactor ?? "—"} × bundling{" "}
-        {r.bundlingFactor}. Final ampacity is limited by the termination
-        temperature per 110.14(C).
-      </p>
+      {!invalid && (
+        <p className="text-xs text-slate-600">
+          Factors: ambient {r.ambientFactor ?? "—"} × bundling{" "}
+          {r.bundlingFactor}. Final ampacity is limited by the termination
+          temperature per 110.14(C).
+        </p>
+      )}
     </CalculatorShell>
   );
 }
