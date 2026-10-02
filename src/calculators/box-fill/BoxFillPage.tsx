@@ -65,11 +65,17 @@ export default function BoxFillPage() {
   // looked like a real result for an input that cannot be evaluated.
   const boxVolumeInvalid =
     s.boxVolume === "" || !Number.isFinite(boxVolume) || boxVolume <= 0;
+  // A blank or negative yoke count is the same kind of incomplete input: it used
+  // to be read as zero devices, so a box that does not fit once the user's
+  // devices are counted could still be reported as "Fits".
+  const devicesInvalid =
+    s.devices === "" || !Number.isFinite(num(s.devices)) || num(s.devices) < 0;
   const quantityInvalid = (c: Row) =>
     !Number.isFinite(num(c.quantity)) ||
     !Number.isInteger(num(c.quantity)) ||
     num(c.quantity) <= 0;
-  const valid = !boxVolumeInvalid && !s.conductors.some(quantityInvalid);
+  const valid =
+    !boxVolumeInvalid && !devicesInvalid && !s.conductors.some(quantityInvalid);
 
   const r = valid
     ? calcBoxFill({
@@ -120,7 +126,7 @@ export default function BoxFillPage() {
             role="status"
           >
             Enter a box volume greater than zero and a positive whole-number
-            quantity for every conductor.
+            quantity for every conductor. Enter a number of devices (0 or more).
           </div>
         )
       }
@@ -202,6 +208,8 @@ export default function BoxFillPage() {
           label="Devices (yokes)"
           value={s.devices}
           min={0}
+          invalid={devicesInvalid}
+          error="Enter a number of devices (0 or more)."
           onChange={(v) => setS((p) => ({ ...p, devices: v }))}
         />
         <SelectField
