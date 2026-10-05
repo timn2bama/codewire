@@ -44,11 +44,11 @@ test("invalid box-fill inputs suppress results, saving and the fill percentage",
   ).toHaveCount(0);
   await expect(save).toBeVisible();
 
-  // A blank or negative device count is incomplete too. It used to be read as
-  // zero yokes, so a box that does not fit once the user's devices are counted
-  // was reported as "Fits" for a field the user had not filled in.
+  // A blank, negative or fractional device count is incomplete too. It used to
+  // be read as zero yokes, so a box that does not fit once the user's devices
+  // are counted was reported as "Fits" for a field the user had not filled in.
   const devices = page.getByLabel("Devices (yokes)");
-  const devicesError = page.getByText("Enter a number of devices (0 or more).", {
+  const devicesError = page.getByText("Enter a whole number of devices (0 or more).", {
     exact: true,
   });
 
@@ -58,6 +58,14 @@ test("invalid box-fill inputs suppress results, saving and the fill percentage",
   await expect(save).toHaveCount(0);
 
   await devices.fill("-1");
+  await expect(devicesError).toBeVisible();
+  await expect(incomplete).toBeVisible();
+  await expect(save).toHaveCount(0);
+
+  // Yokes are whole objects: 1.5 of them is impossible. It used to be accepted
+  // and produced a plausible-looking required volume (18.00 in³) for an input
+  // that cannot be evaluated.
+  await devices.fill("1.5");
   await expect(devicesError).toBeVisible();
   await expect(incomplete).toBeVisible();
   await expect(save).toHaveCount(0);
