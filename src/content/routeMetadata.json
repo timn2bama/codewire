@@ -63,5 +63,30 @@
     "path": "/conduit-bending-guide",
     "title": "How to Bend Conduit: Offsets, Saddles & Multipliers — Codewire",
     "description": "How to bend conduit: offset multipliers (10°, 22.5°, 30°, 45°, 60°), shrink, three- and four-point saddles, and 90° stub-up take-up, with the formulas electricians use."
+  },
+  {
+    "path": "/jobs",
+    "title": "Saved Jobs — Codewire",
+    "description": "Your saved Codewire calculations, grouped by job. Open a job to review, edit or export its calculations. Saved jobs live on your device and sync across devices with Codewire Pro."
+  },
+  {
+    "path": "/login",
+    "title": "Sign In — Codewire",
+    "description": "Sign in to Codewire with your email or Google account to sync saved jobs across devices and export job reports. The NEC calculators work offline without an account."
+  },
+  {
+    "path": "/account",
+    "title": "Your Codewire Account",
+    "description": "Manage your Codewire account: subscription status, plan changes, cloud sync and data backup. Sign in to view or update your account."
+  },
+  {
+    "path": "/terms",
+    "title": "Terms of Service — Codewire",
+    "description": "The terms that govern your use of the Codewire NEC calculator app, including the limits of the calculations and your responsibilities as a user."
+  },
+  {
+    "path": "/privacy",
+    "title": "Privacy Policy — Codewire",
+    "description": "How Codewire handles your data: what stays on your device, what is stored with cloud sync, and what is never collected."
   }
 ]
