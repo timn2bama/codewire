@@ -14,6 +14,11 @@ const routeMetadata = JSON.parse(
   ),
 ) as RouteMetadataEntry[];
 
+// /account is wrapped in RequireAuth: a signed-out visitor is redirected to
+// /login, so /account's own title is never rendered directly. The loop below
+// skips it rather than asserting a title the page cannot show.
+const AUTH_GATED_PATHS = new Set(["/account"]);
+
 async function expectMetadata(
   page: import("@playwright/test").Page,
   expected: { title: string; description: string; canonical: string },
@@ -35,6 +40,7 @@ test("syncs all public route metadata after client navigation", async ({
   await page.goto("/");
 
   for (const metadata of routeMetadata) {
+    if (AUTH_GATED_PATHS.has(metadata.path)) continue;
     await page.evaluate((path) => {
       window.history.pushState({}, "", path);
       window.dispatchEvent(new PopStateEvent("popstate"));
