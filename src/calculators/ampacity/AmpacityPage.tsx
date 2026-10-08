@@ -91,7 +91,17 @@ export default function AmpacityPage() {
         )
       : null;
 
-  const ampacityStr = r.ampacity === null ? "—" : `${r.ampacity.toFixed(0)} A`;
+  // toFixed(0) rounded the usable ampacity to the nearest ampere, so a derated
+  // 24.6 A was shown as "25 A" while carriesLoad compared the unrounded 24.6 —
+  // the card could read "USABLE AMPACITY 25 A" and "< 25 A" at once, reporting
+  // an ampacity above the real one. NEC 310.15 gives the ampacity as the
+  // derated value and no rule rounds it up, so truncate to a tenth of an ampere
+  // (normalising float noise so 54.599999999999994 stays 54.6) and never
+  // display a figure larger than the computed ampacity.
+  const ampacityStr =
+    r.ampacity === null
+      ? "—"
+      : `${Math.floor(Number((r.ampacity * 10).toFixed(6))) / 10} A`;
   const carriesLoad = r.ampacity !== null && load > 0 && r.ampacity >= load;
 
   return (
