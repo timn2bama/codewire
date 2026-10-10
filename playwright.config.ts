@@ -24,9 +24,21 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "npm run preview -- --host 127.0.0.1 --port 4173",
+    // The authenticated surfaces only exist in a build that carries Supabase
+    // config: with the env vars absent `cloudEnabled` is false and the app
+    // renders "Accounts aren't set up in this build yet" instead of the sign-in
+    // form, which is why sign-in, entitlement and Stripe went unverified. These
+    // placeholders make the cloud UI render; tests/e2e/authenticated-flows.spec.ts
+    // stubs every request they produce, so no real project or secret is needed.
+    // Production builds are unaffected: they run `npm run build` directly.
+    command:
+      "VITE_SUPABASE_URL=https://stub.supabase.co VITE_SUPABASE_ANON_KEY=stub-anon-key npm run build && npm run preview -- --host 127.0.0.1 --port 4173",
     url: "http://127.0.0.1:4173",
     reuseExistingServer: !process.env.CI,
-    timeout: 30_000,
+    timeout: 180_000,
+    env: {
+      VITE_SUPABASE_URL: "https://stub.supabase.co",
+      VITE_SUPABASE_ANON_KEY: "stub-anon-key",
+    },
   },
 });
