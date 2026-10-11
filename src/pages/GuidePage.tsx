@@ -7,7 +7,7 @@ export default function GuidePage({ slug }: { slug: string }) {
 
   if (!g) {
     return (
-      <div className="mx-auto max-w-2xl px-4 pt-10 text-center text-slate-500">
+      <div className="mx-auto max-w-2xl px-4 pt-10 text-center text-slate-400">
         <p>Guide not found.</p>
         <Link to="/" className="mt-3 inline-block text-brand">
           ← Home
@@ -37,7 +37,7 @@ export default function GuidePage({ slug }: { slug: string }) {
       <div className="my-6">
         <Link
           to={g.calcPath}
-          className="inline-block rounded-xl bg-brand px-6 py-3 font-semibold text-white active:bg-brand-dark"
+          className="inline-block rounded-xl bg-brand-dark px-6 py-3 font-semibold text-white active:brightness-110"
         >
           {g.calcLabel}
         </Link>
@@ -53,7 +53,7 @@ export default function GuidePage({ slug }: { slug: string }) {
         ))}
       </div>
 
-      <p className="mt-8 text-xs text-slate-600">
+      <p className="mt-8 text-xs text-slate-400">
         Field aid only — verify against the NEC edition adopted by your AHJ.
       </p>
     </div>

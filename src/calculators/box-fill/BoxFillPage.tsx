@@ -198,7 +198,7 @@ export default function BoxFillPage() {
               </div>
               <button
                 onClick={() => removeRow(i)}
-                className="mb-1 rounded-lg p-2.5 text-slate-500 active:bg-slate-800"
+                className="mb-1 rounded-lg p-2.5 text-slate-400 active:bg-slate-800"
                 aria-label="Remove conductor"
                 disabled={s.conductors.length === 1}
               >

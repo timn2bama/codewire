@@ -120,7 +120,7 @@ export function SaveCalcSheet({ data, onClose, onSaved }: Props) {
                   <span>
                     <span className="font-semibold">{j.name}</span>
                     {formatAddress(j) && (
-                      <span className="block text-sm text-slate-500">
+                      <span className="block text-sm text-slate-400">
                         {formatAddress(j)}
                       </span>
                     )}
@@ -150,7 +150,7 @@ export function SaveCalcSheet({ data, onClose, onSaved }: Props) {
             <Link
               to="/upgrade"
               onClick={onClose}
-              className="mt-3 inline-block rounded-xl bg-brand px-5 py-2.5 font-semibold text-white active:bg-brand-dark"
+              className="mt-3 inline-block rounded-xl bg-brand-dark px-5 py-2.5 font-semibold text-white active:brightness-110"
             >
               See Pro
             </Link>
@@ -180,7 +180,7 @@ export function SaveCalcSheet({ data, onClose, onSaved }: Props) {
         <button
           onClick={handleSave}
           disabled={!canSave}
-          className="mt-2 w-full rounded-xl bg-brand py-3.5 font-semibold text-white disabled:opacity-40 active:bg-brand-dark"
+          className="mt-2 w-full rounded-xl bg-brand-dark py-3.5 font-semibold text-white disabled:opacity-40 active:brightness-110"
         >
           Save to job
         </button>

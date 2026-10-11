@@ -140,7 +140,7 @@ export default function ConduitBendingPage() {
           error="Enter an obstruction depth greater than zero."
           onChange={(v) => set("saddleDepth", v)}
         />
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-slate-400">
           45° center bend, two 22.5° outer bends.
         </p>
       </>

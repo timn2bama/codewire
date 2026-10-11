@@ -34,7 +34,7 @@ export default function JobDetail() {
 
   if (!job) {
     return (
-      <div className="mx-auto max-w-2xl px-4 pt-10 text-center text-slate-500">
+      <div className="mx-auto max-w-2xl px-4 pt-10 text-center text-slate-400">
         <p>This job no longer exists.</p>
         <Link to="/jobs" className="mt-3 inline-block text-brand">
           ← Back to jobs
@@ -64,7 +64,7 @@ export default function JobDetail() {
           <h1 className="truncate text-xl font-bold">
             {job.name}
             {job.jobNumber && (
-              <span className="ml-2 text-base font-normal text-slate-500">
+              <span className="ml-2 text-base font-normal text-slate-400">
                 #{job.jobNumber}
               </span>
             )}
@@ -79,7 +79,7 @@ export default function JobDetail() {
         </button>
         <button
           onClick={removeJob}
-          className="rounded-lg p-2 text-slate-500 active:bg-slate-800"
+          className="rounded-lg p-2 text-slate-400 active:bg-slate-800"
           aria-label="Delete job"
         >
           <Trash2 size={20} />
@@ -90,13 +90,13 @@ export default function JobDetail() {
         <div className="mb-5 space-y-2 rounded-2xl border border-slate-800 bg-slate-900 p-4 text-sm">
           {formatAddress(job) && (
             <div className="flex items-start gap-2 text-slate-300">
-              <MapPin size={16} className="mt-0.5 shrink-0 text-slate-500" />
+              <MapPin size={16} className="mt-0.5 shrink-0 text-slate-400" />
               <span>{formatAddress(job)}</span>
             </div>
           )}
           {job.phone && (
             <div className="flex items-center gap-2">
-              <Phone size={16} className="shrink-0 text-slate-500" />
+              <Phone size={16} className="shrink-0 text-slate-400" />
               <a href={`tel:${job.phone}`} className="text-brand">
                 {job.phone}
               </a>
@@ -104,7 +104,7 @@ export default function JobDetail() {
           )}
           {job.notes && (
             <div className="flex items-start gap-2 text-slate-300">
-              <StickyNote size={16} className="mt-0.5 shrink-0 text-slate-500" />
+              <StickyNote size={16} className="mt-0.5 shrink-0 text-slate-400" />
               <span className="whitespace-pre-wrap">{job.notes}</span>
             </div>
           )}
@@ -129,7 +129,7 @@ export default function JobDetail() {
         ))}
 
       {jobCalcs.length === 0 ? (
-        <p className="mt-10 text-center text-slate-500">
+        <p className="mt-10 text-center text-slate-400">
           No saved calculations in this job.
         </p>
       ) : (
@@ -147,7 +147,7 @@ export default function JobDetail() {
                 </div>
                 <button
                   onClick={() => deleteCalc(c.id)}
-                  className="shrink-0 rounded-lg p-2 text-slate-500 active:bg-slate-800"
+                  className="shrink-0 rounded-lg p-2 text-slate-400 active:bg-slate-800"
                   aria-label="Delete calculation"
                 >
                   <Trash2 size={18} />

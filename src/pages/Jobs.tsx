@@ -51,7 +51,7 @@ export default function Jobs() {
         <div className="relative mb-4">
           <Search
             size={18}
-            className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"
+            className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
           />
           <input
             className="field-input pl-11"
@@ -63,7 +63,7 @@ export default function Jobs() {
       )}
 
       {jobs.length === 0 ? (
-        <div className="mt-10 flex flex-col items-center text-center text-slate-500">
+        <div className="mt-10 flex flex-col items-center text-center text-slate-400">
           <Briefcase size={40} className="mb-3 text-slate-700" />
           <p className="font-medium text-slate-400">No saved jobs yet</p>
           <p className="mt-1 max-w-xs text-sm">
@@ -72,13 +72,13 @@ export default function Jobs() {
           </p>
           <Link
             to="/"
-            className="mt-5 rounded-xl bg-brand px-5 py-2.5 font-semibold text-white active:bg-brand-dark"
+            className="mt-5 rounded-xl bg-brand-dark px-5 py-2.5 font-semibold text-white active:brightness-110"
           >
             Open the calculators
           </Link>
         </div>
       ) : filtered.length === 0 ? (
-        <p className="mt-10 text-center text-slate-500">
+        <p className="mt-10 text-center text-slate-400">
           No jobs match “{query}”.
         </p>
       ) : (
@@ -96,13 +96,13 @@ export default function Jobs() {
                 <h2 className="truncate font-bold">
                   {j.name}
                   {j.jobNumber && (
-                    <span className="ml-2 text-sm font-normal text-slate-500">
+                    <span className="ml-2 text-sm font-normal text-slate-400">
                       #{j.jobNumber}
                     </span>
                   )}
                 </h2>
                 {formatAddress(j) && (
-                  <p className="truncate text-sm text-slate-500">
+                  <p className="truncate text-sm text-slate-400">
                     {formatAddress(j)}
                   </p>
                 )}

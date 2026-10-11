@@ -25,7 +25,7 @@ export default function Home() {
         </span>
         <div className="flex-1">
           <h1 className="text-2xl font-extrabold leading-none">Codewire</h1>
-          <p className="text-sm text-slate-500">NEC field calculators</p>
+          <p className="text-sm text-slate-400">NEC field calculators</p>
         </div>
         <Link
           to="/jobs"
@@ -63,7 +63,7 @@ export default function Home() {
       <div className="relative mb-5">
         <Search
           size={18}
-          className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"
+          className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
         />
         <input
           className="field-input pl-11"
@@ -98,14 +98,14 @@ export default function Home() {
           );
         })}
         {results.length === 0 && (
-          <p className="col-span-full py-8 text-center text-slate-500">
+          <p className="col-span-full py-8 text-center text-slate-400">
             No calculator matches “{query}”.
           </p>
         )}
       </div>
 
-      <div className="mt-8 border-t border-slate-800 pt-4 text-center text-xs leading-relaxed text-slate-500">
-        <span className="text-slate-600">Guides: </span>
+      <div className="mt-8 border-t border-slate-800 pt-4 text-center text-xs leading-relaxed text-slate-400">
+        <span className="text-slate-400">Guides: </span>
         <Link to="/voltage-drop-guide" className="inline-flex min-h-6 items-center text-slate-400 hover:text-brand">
           Voltage drop
         </Link>
@@ -131,10 +131,10 @@ export default function Home() {
         </Link>
       </div>
 
-      <p className="mt-4 text-center text-xs text-slate-600">
+      <p className="mt-4 text-center text-xs text-slate-400">
         Works offline. Verify against the code edition adopted by your AHJ.
       </p>
-      <p className="mt-2 text-center text-xs text-slate-600">
+      <p className="mt-2 text-center text-xs text-slate-400">
         Feedback?{" "}
         <a
           href="mailto:codewire.tools@gmail.com?subject=Codewire%20feedback"

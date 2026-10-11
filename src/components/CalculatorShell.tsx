@@ -43,7 +43,7 @@ export function CalculatorShell({
         </Link>
         <div className="flex-1">
           <h1 className="text-xl font-bold leading-tight">{title}</h1>
-          {subtitle && <p className="text-sm text-slate-500">{subtitle}</p>}
+          {subtitle && <p className="text-sm text-slate-400">{subtitle}</p>}
         </div>
         {saveData && (
           <button
@@ -62,7 +62,7 @@ export function CalculatorShell({
 
       <div className="space-y-5">{children}</div>
 
-      <p className="mt-6 text-xs leading-relaxed text-slate-600">
+      <p className="mt-6 text-xs leading-relaxed text-slate-400">
         {EDITION.code}. {EDITION.note} Not a substitute for the code book or a
         licensed inspection.
       </p>

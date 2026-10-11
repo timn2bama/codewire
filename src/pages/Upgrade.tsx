@@ -120,7 +120,7 @@ export default function Upgrade() {
             >
               <div className="text-sm text-slate-400">Monthly</div>
               <div className="text-2xl font-bold">
-                $6<span className="text-base font-normal text-slate-500">/mo</span>
+                $6<span className="text-base font-normal text-slate-400">/mo</span>
               </div>
             </button>
             <button
@@ -137,7 +137,7 @@ export default function Upgrade() {
               </span>
               <div className="text-sm text-slate-400">Yearly</div>
               <div className="text-2xl font-bold">
-                $45<span className="text-base font-normal text-slate-500">/yr</span>
+                $45<span className="text-base font-normal text-slate-400">/yr</span>
               </div>
             </button>
           </div>
@@ -159,7 +159,7 @@ export default function Upgrade() {
             onClick={runPrimaryAction}
             disabled={busy || billingView.action === "none"}
             aria-busy={busy}
-            className="mt-4 w-full rounded-xl bg-brand-dark py-3.5 font-semibold text-white disabled:opacity-50 active:bg-brand"
+            className="mt-4 w-full rounded-xl bg-brand-dark py-3.5 font-semibold text-white disabled:opacity-50 active:brightness-110"
           >
             {busy
               ? billingView.action === "portal"

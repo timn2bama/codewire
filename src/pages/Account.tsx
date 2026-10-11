@@ -214,12 +214,12 @@ export default function Account() {
           <button
             onClick={submit}
             disabled={busy}
-            className="w-full rounded-xl bg-brand-dark py-3.5 font-semibold text-white disabled:opacity-50 active:bg-brand"
+            className="w-full rounded-xl bg-brand-dark py-3.5 font-semibold text-white disabled:opacity-50 active:brightness-110"
           >
             {busy ? "…" : mode === "signin" ? "Sign in" : "Create account"}
           </button>
 
-          <div className="flex items-center gap-3 text-xs text-slate-600">
+          <div className="flex items-center gap-3 text-xs text-slate-400">
             <span className="h-px flex-1 bg-slate-800" /> or{" "}
             <span className="h-px flex-1 bg-slate-800" />
           </div>
@@ -235,7 +235,7 @@ export default function Account() {
       ) : (
         <div className="space-y-4">
           <div className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
-            <div className="text-sm text-slate-500">Signed in as</div>
+            <div className="text-sm text-slate-400">Signed in as</div>
             <div className="font-semibold">{user.email}</div>
             <div
               className="mt-3 flex items-center gap-2"
@@ -243,7 +243,7 @@ export default function Account() {
               aria-live="polite"
               aria-atomic="true"
             >
-              <span className="text-sm text-slate-500">Plan:</span>
+              <span className="text-sm text-slate-400">Plan:</span>
               {confirmationPending ? (
                 <span className="rounded-full bg-slate-800 px-2.5 py-0.5 text-xs font-semibold text-slate-300">
                   Confirming...
@@ -286,7 +286,7 @@ export default function Account() {
               </p>
             )}
             {sub.currentPeriodEnd && (
-              <div className="mt-1 text-xs text-slate-500">
+              <div className="mt-1 text-xs text-slate-400">
                 Renews/ends {new Date(sub.currentPeriodEnd).toLocaleDateString()}
               </div>
             )}
@@ -345,7 +345,7 @@ export default function Account() {
           ) : (
             <Link
               to="/upgrade"
-              className="block w-full rounded-xl bg-brand-dark py-3 text-center font-semibold text-white active:bg-brand"
+              className="block w-full rounded-xl bg-brand-dark py-3 text-center font-semibold text-white active:brightness-110"
             >
               Upgrade to Pro
             </Link>
