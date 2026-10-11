@@ -54,7 +54,7 @@ export default function About() {
         tool.
       </p>
 
-      <h2 className="mb-3 mt-7 text-sm font-semibold uppercase tracking-wide text-slate-500">
+      <h2 className="mb-3 mt-7 text-sm font-semibold uppercase tracking-wide text-slate-400">
         How to use it
       </h2>
       <div className="space-y-3">
@@ -79,7 +79,7 @@ export default function About() {
         })}
       </div>
 
-      <h2 className="mb-3 mt-7 text-sm font-semibold uppercase tracking-wide text-slate-500">
+      <h2 className="mb-3 mt-7 text-sm font-semibold uppercase tracking-wide text-slate-400">
         The five calculators
       </h2>
       <div className="space-y-2">
@@ -123,7 +123,7 @@ export default function About() {
       <div className="mt-6 text-center">
         <Link
           to="/"
-          className="inline-block rounded-xl bg-brand px-6 py-3 font-semibold text-white active:bg-brand-dark"
+          className="inline-block rounded-xl bg-brand-dark px-6 py-3 font-semibold text-white active:brightness-110"
         >
           Open the calculators
         </Link>

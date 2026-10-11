@@ -44,7 +44,7 @@ export function NumberField({
           }
         />
         {unit && (
-          <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm text-slate-500">
+          <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm text-slate-400">
             {unit}
           </span>
         )}

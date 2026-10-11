@@ -54,7 +54,7 @@ export function EditJobSheet({ job, onClose, onSaved }: Props) {
         <button
           onClick={handleSave}
           disabled={!canSave}
-          className="mt-2 w-full rounded-xl bg-brand py-3.5 font-semibold text-white disabled:opacity-40 active:bg-brand-dark"
+          className="mt-2 w-full rounded-xl bg-brand-dark py-3.5 font-semibold text-white disabled:opacity-40 active:brightness-110"
         >
           Save changes
         </button>

@@ -27,7 +27,7 @@ export function ResultCard({
   return (
     <div className="flex items-center justify-between gap-4">
       <div className="min-w-0">
-        <div className="text-xs uppercase tracking-wide text-slate-500">
+        <div className="text-xs uppercase tracking-wide text-slate-400">
           {primaryLabel}
         </div>
         <div className="truncate font-mono text-3xl font-bold text-white">

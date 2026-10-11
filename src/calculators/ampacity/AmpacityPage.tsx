@@ -213,14 +213,14 @@ export default function AmpacityPage() {
             {sizeLabel(recommended)} →
           </button>
         ) : (
-          <span className="text-slate-500">
+          <span className="text-slate-400">
             {load > 0 ? "none in table" : "enter a load"}
           </span>
         )}
       </div>
 
       {!invalid && (
-        <p className="text-xs text-slate-600">
+        <p className="text-xs text-slate-400">
           Factors: ambient {r.ambientFactor ?? "—"} × bundling{" "}
           {r.bundlingFactor}. Final ampacity is limited by the termination
           temperature per 110.14(C).

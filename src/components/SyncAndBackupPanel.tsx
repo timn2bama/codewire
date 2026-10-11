@@ -362,7 +362,7 @@ function SyncAndBackupPanelForScope() {
 
       <details className="group mt-4 border-t border-slate-800 pt-3">
         <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-brand">
-          <HardDrive size={17} className="text-slate-500" aria-hidden="true" />
+          <HardDrive size={17} className="text-slate-400" aria-hidden="true" />
           <div>
             <h3 className="text-sm font-semibold text-slate-200">Device backup</h3>
             <p className="text-xs text-slate-400">
@@ -439,7 +439,7 @@ function SyncAndBackupPanelForScope() {
               <button
                 type="button"
                 onClick={confirmMerge}
-                className="min-h-11 rounded-lg bg-brand-dark px-4 py-2 text-sm font-semibold text-white outline-none active:bg-brand focus-visible:ring-2 focus-visible:ring-brand"
+                className="min-h-11 rounded-lg bg-brand-dark px-4 py-2 text-sm font-semibold text-white outline-none active:brightness-110 focus-visible:ring-2 focus-visible:ring-brand"
               >
                 Merge backup
               </button>

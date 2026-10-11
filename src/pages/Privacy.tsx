@@ -21,7 +21,7 @@ export default function Privacy() {
       </header>
 
       <div className="space-y-3 text-sm leading-relaxed text-slate-300">
-        <p className="text-xs text-slate-500">Last updated 2026-10-09.</p>
+        <p className="text-xs text-slate-400">Last updated 2026-10-09.</p>
 
         <p>
           Codewire is built to keep your data minimal and on your device by

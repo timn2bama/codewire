@@ -72,7 +72,7 @@ body {
     @apply flex-1 rounded-lg px-3 py-2.5 text-center text-sm font-semibold transition;
   }
   .seg-btn-on {
-    @apply bg-brand text-white;
+    @apply bg-brand-dark text-white;
   }
   .seg-btn-off {
     @apply bg-slate-800 text-slate-300 active:bg-slate-700;
