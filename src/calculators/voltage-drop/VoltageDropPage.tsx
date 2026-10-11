@@ -73,11 +73,18 @@ export default function VoltageDropPage() {
   const r = baseInput ? calcVoltageDrop({ ...baseInput, size: s.size }) : null;
   const recommended = baseInput ? recommendSize(baseInput, 3) : null;
 
+  // A drop that reaches or exceeds the source voltage leaves no voltage at the
+  // load, so "at load" comes out negative - a figure no conductor can deliver,
+  // because the circular-mil model only holds while the load still has voltage.
+  // Treat it like an incomplete input and withhold the result rather than
+  // showing an impossible number as if it were a computed answer.
+  const dropsExceedSource = r !== null && r.voltageAtLoad <= 0;
+
   return (
     <CalculatorShell
       title="Voltage Drop"
       subtitle="Circular-mil method · 3% branch / 5% total"
-      saveData={r ? {
+      saveData={r && !dropsExceedSource ? {
         calculatorId: "voltage-drop",
         path: "/voltage-drop",
         defaultTitle: "Voltage Drop",
@@ -88,7 +95,7 @@ export default function VoltageDropPage() {
         state: s,
       } : undefined}
       result={
-        r ? <ResultCard
+        r && !dropsExceedSource ? <ResultCard
           primary={`${r.percentDrop.toFixed(2)}%`}
           primaryLabel="Voltage drop"
           stats={[
@@ -103,7 +110,9 @@ export default function VoltageDropPage() {
             className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-200"
             role="status"
           >
-            Enter positive, finite values to calculate voltage drop.
+            {dropsExceedSource
+              ? "The voltage drop reaches the source voltage, so no voltage is left at the load. Check the load current, one-way length and wire size."
+              : "Enter positive, finite values to calculate voltage drop."}
           </div>
         )
       }
