@@ -33,13 +33,15 @@ describe("staging environment safety", () => {
   // backend checks it does perform must not be blocked by credentials it does not
   // use. Omitting them is reported, not silently treated as verified.
   it("runs without Stripe configuration and says so", () => {
-    const {
-      STAGING_STRIPE_SECRET_KEY: _sk,
-      STAGING_STRIPE_WEBHOOK_SECRET: _wh,
-      STAGING_STRIPE_PRICE_MONTHLY: _pm,
-      STAGING_STRIPE_PRICE_YEARLY: _py,
-      ...withoutStripe
-    } = validEnvironment;
+    const withoutStripe = { ...validEnvironment };
+    for (const key of [
+      "STAGING_STRIPE_SECRET_KEY",
+      "STAGING_STRIPE_WEBHOOK_SECRET",
+      "STAGING_STRIPE_PRICE_MONTHLY",
+      "STAGING_STRIPE_PRICE_YEARLY",
+    ]) {
+      delete withoutStripe[key];
+    }
     expect(validateStagingEnvironment(withoutStripe)).toEqual({
       appUrl: "https://staging-codewire.example.com",
       supabaseUrl: "https://stagingproject.supabase.co",
