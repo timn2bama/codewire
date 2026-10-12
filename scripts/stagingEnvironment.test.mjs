@@ -25,7 +25,37 @@ describe("staging environment safety", () => {
     expect(validateStagingEnvironment(validEnvironment)).toEqual({
       appUrl: "https://staging-codewire.example.com",
       supabaseUrl: "https://stagingproject.supabase.co",
+      stripeConfigured: true,
     });
+  });
+
+  // Stripe values are optional because this smoke test never calls Stripe; the
+  // backend checks it does perform must not be blocked by credentials it does not
+  // use. Omitting them is reported, not silently treated as verified.
+  it("runs without Stripe configuration and says so", () => {
+    const withoutStripe = { ...validEnvironment };
+    for (const key of [
+      "STAGING_STRIPE_SECRET_KEY",
+      "STAGING_STRIPE_WEBHOOK_SECRET",
+      "STAGING_STRIPE_PRICE_MONTHLY",
+      "STAGING_STRIPE_PRICE_YEARLY",
+    ]) {
+      delete withoutStripe[key];
+    }
+    expect(validateStagingEnvironment(withoutStripe)).toEqual({
+      appUrl: "https://staging-codewire.example.com",
+      supabaseUrl: "https://stagingproject.supabase.co",
+      stripeConfigured: false,
+    });
+  });
+
+  it("rejects a half-configured Stripe set rather than half-checking it", () => {
+    expect(() =>
+      validateStagingEnvironment({
+        ...validEnvironment,
+        STAGING_STRIPE_PRICE_YEARLY: "",
+      }),
+    ).toThrow(/Incomplete Stripe test-mode configuration/);
   });
 
   it.each([
