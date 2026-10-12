@@ -149,7 +149,13 @@ try {
   }
 
   console.log("Staging auth, entitlement, RLS, and cloud-sync checks passed.");
-  console.log("Stripe configuration is isolated in test mode; no charge was created.");
+  console.log(
+    config.stripeConfigured
+      ? "Stripe configuration is isolated in test mode; no charge was created."
+      : "Stripe was NOT checked: no test-mode keys are configured for this run. " +
+          "Auth, entitlement, RLS and cloud sync above were verified against the " +
+          "real staging backend regardless.",
+  );
 } finally {
   if (proUser) {
     const calcCleanup = await adminClient

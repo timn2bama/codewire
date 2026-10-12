@@ -10,6 +10,18 @@ const REQUIRED_VARIABLES = [
   "STAGING_TEST_PRO_PASSWORD",
   "STAGING_TEST_FREE_EMAIL",
   "STAGING_TEST_FREE_PASSWORD",
+];
+
+/**
+ * Stripe test-mode values are optional, because this smoke test never calls
+ * Stripe: it verifies auth, entitlement, RLS isolation and cloud sync against the
+ * real staging backend. Requiring credentials for a check that does not run kept
+ * the whole smoke test - the only way to exercise those paths for real - from
+ * ever executing. Supply them and they are validated and reported like before;
+ * leave them out and the run says so explicitly instead of implying Stripe was
+ * checked.
+ */
+const STRIPE_VARIABLES = [
   "STAGING_STRIPE_SECRET_KEY",
   "STAGING_STRIPE_WEBHOOK_SECRET",
   "STAGING_STRIPE_PRICE_MONTHLY",
@@ -61,24 +73,41 @@ export function validateStagingEnvironment(env) {
   if (env.STAGING_TEST_PRO_EMAIL === env.STAGING_TEST_FREE_EMAIL) {
     throw new Error("The Pro and free staging accounts must be different users");
   }
-  if (!env.STAGING_STRIPE_SECRET_KEY.startsWith("sk_test_")) {
-    throw new Error("STAGING_STRIPE_SECRET_KEY must be a Stripe test-mode key");
+
+  // A live key is never acceptable here, whether the rest are present or not.
+  if ((env.STAGING_STRIPE_SECRET_KEY ?? "").trim().startsWith("sk_live_")) {
+    throw new Error("Refusing to run staging tests with a LIVE Stripe key");
   }
-  if (!env.STAGING_STRIPE_WEBHOOK_SECRET.startsWith("whsec_")) {
-    throw new Error("STAGING_STRIPE_WEBHOOK_SECRET must be a webhook secret");
+
+  const supplied = STRIPE_VARIABLES.filter((name) => env[name]?.trim());
+  const stripeConfigured = supplied.length === STRIPE_VARIABLES.length;
+  if (supplied.length > 0 && !stripeConfigured) {
+    const missing = STRIPE_VARIABLES.filter((name) => !env[name]?.trim());
+    throw new Error(
+      `Incomplete Stripe test-mode configuration; missing ${missing.join(", ")}`,
+    );
   }
-  for (const name of [
-    "STAGING_STRIPE_PRICE_MONTHLY",
-    "STAGING_STRIPE_PRICE_YEARLY",
-  ]) {
-    if (!env[name].startsWith("price_")) {
-      throw new Error(`${name} must be a Stripe Price id`);
+  if (stripeConfigured) {
+    if (!env.STAGING_STRIPE_SECRET_KEY.startsWith("sk_test_")) {
+      throw new Error("STAGING_STRIPE_SECRET_KEY must be a Stripe test-mode key");
+    }
+    if (!env.STAGING_STRIPE_WEBHOOK_SECRET.startsWith("whsec_")) {
+      throw new Error("STAGING_STRIPE_WEBHOOK_SECRET must be a webhook secret");
+    }
+    for (const name of [
+      "STAGING_STRIPE_PRICE_MONTHLY",
+      "STAGING_STRIPE_PRICE_YEARLY",
+    ]) {
+      if (!env[name].startsWith("price_")) {
+        throw new Error(`${name} must be a Stripe Price id`);
+      }
     }
   }
 
   return {
     appUrl: appUrl.origin,
     supabaseUrl: supabaseUrl.origin,
+    stripeConfigured,
   };
 }
 
