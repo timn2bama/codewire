@@ -37,6 +37,47 @@ describe("box fill (NEC 314.16)", () => {
     expect(r.largestSize).toBe("10");
   });
 
+  it("clamp allowance uses the largest conductor in the box, including the EGC", () => {
+    // 314.16(B)(2): clamps count once, based on the largest conductor
+    // contained in the box. 4× 16 AWG (1.75) + a 12 AWG EGC (2.25):
+    // conductors 4*1.75 = 7.00 ; device 2*1.75 = 3.50 ; ground 2.25 ;
+    // clamps = largest conductor in the box = 12 AWG = 2.25
+    // required = 15.00 (the clamp cannot be sized to 16 AWG while a 12 AWG
+    // EGC sits in the same box)
+    const r = calcBoxFill({
+      boxVolume: 15,
+      conductors: [{ size: "16", quantity: 4 }],
+      devices: 1,
+      hasClamps: true,
+      groundSize: "12",
+    });
+    expect(r.requiredVolume).toBeCloseTo(15.0, 2);
+    expect(r.pass).toBe(true);
+
+    // The same box with one fewer conductor must now fail: it only fits 15.0
+    const smaller = calcBoxFill({
+      boxVolume: 14,
+      conductors: [{ size: "16", quantity: 4 }],
+      devices: 1,
+      hasClamps: true,
+      groundSize: "12",
+    });
+    expect(smaller.requiredVolume).toBeCloseTo(15.0, 2);
+    expect(smaller.pass).toBe(false);
+  });
+
+  it("clamps still ignore the EGC when there are no clamps", () => {
+    const r = calcBoxFill({
+      boxVolume: 15,
+      conductors: [{ size: "16", quantity: 4 }],
+      devices: 1,
+      hasClamps: false,
+      groundSize: "12",
+    });
+    // 7.00 + 3.50 + 2.25 = 12.75
+    expect(r.requiredVolume).toBeCloseTo(12.75, 2);
+  });
+
   it("flags an over-filled box", () => {
     const r = calcBoxFill({
       boxVolume: 12.5,
