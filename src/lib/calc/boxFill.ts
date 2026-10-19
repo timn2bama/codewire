@@ -53,8 +53,14 @@ export function calcBoxFill(input: BoxFillInput): BoxFillResult {
   const deviceVol =
     largest !== null ? 2 * allowance(largest) * Math.max(0, input.devices) : 0;
 
-  // Clamps: one allowance of the largest conductor, total.
-  const clampVol = input.hasClamps && largest !== null ? allowance(largest) : 0;
+  // Clamps: one allowance of the largest conductor, total. 314.16(B)(2) bases
+  // this on the largest conductor *contained in the box*, so the EGC counts
+  // too: a 12 AWG EGC in a box of 16 AWG circuit conductors is the largest.
+  const clampSize =
+    input.groundSize && input.hasClamps
+      ? largerSize(largest, input.groundSize)
+      : largest;
+  const clampVol = input.hasClamps && clampSize !== null ? allowance(clampSize) : 0;
 
   // Grounding: all EGCs = one allowance of the largest EGC.
   const groundVol = input.groundSize ? allowance(input.groundSize) : 0;
