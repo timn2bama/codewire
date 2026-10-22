@@ -6,7 +6,7 @@ import {
   SelectField,
   Segmented,
 } from "../../components/fields";
-import { usePersistentState } from "../../lib/usePersistentState";
+import { listedValue, usePersistentState } from "../../lib/usePersistentState";
 import { useLoadSavedState } from "../../lib/useLoadSavedState";
 import { sizeLabel, WIRE_SIZES } from "../../lib/nec/types";
 import type { Material, TempRating, WireSize } from "../../lib/nec/types";
@@ -38,10 +38,34 @@ const tempOptions = [
   { value: "75", label: "75 °C" },
   { value: "90", label: "90 °C" },
 ];
+const materials: readonly Material[] = ["cu", "al"];
+const tempRatings: readonly TempRating[] = [60, 75, 90];
+
+/**
+ * Repairs stored state before it is used. A size or temperature column this
+ * build does not list used to reach the Table 310.16 lookup, throw during
+ * render and leave a blank page.
+ */
+function reviveState(raw: unknown): State {
+  const value = (raw ?? {}) as Partial<State>;
+  return {
+    material: listedValue(value.material, materials, DEFAULT.material),
+    size: listedValue(value.size, WIRE_SIZES, DEFAULT.size),
+    tempRating: listedValue(value.tempRating, tempRatings, DEFAULT.tempRating),
+    ambientC: value.ambientC ?? DEFAULT.ambientC,
+    currentCarrying: value.currentCarrying ?? DEFAULT.currentCarrying,
+    terminationRating: listedValue(
+      value.terminationRating,
+      tempRatings,
+      DEFAULT.terminationRating,
+    ),
+    load: value.load ?? DEFAULT.load,
+  };
+}
 
 export default function AmpacityPage() {
-  const [s, setS] = usePersistentState<State>("cw:ampacity", DEFAULT);
-  useLoadSavedState<State>(setS);
+  const [s, setS] = usePersistentState<State>("cw:ampacity", DEFAULT, reviveState);
+  useLoadSavedState<State>((loaded) => setS(reviveState(loaded)));
   const set = <K extends keyof State>(k: K, v: State[K]) =>
     setS((p) => ({ ...p, [k]: v }));
 
