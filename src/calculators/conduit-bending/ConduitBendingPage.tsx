@@ -1,7 +1,7 @@
 import { CalculatorShell } from "../../components/CalculatorShell";
 import { ResultCard } from "../../components/ResultCard";
 import { NumberField, SelectField, Segmented } from "../../components/fields";
-import { usePersistentState } from "../../lib/usePersistentState";
+import { listedValue, usePersistentState } from "../../lib/usePersistentState";
 import { useLoadSavedState } from "../../lib/useLoadSavedState";
 import {
   calcFourPointSaddle,
@@ -47,9 +47,39 @@ const takeUpOptions = Object.keys(TAKE_UP).map((k) => ({
 
 const inch = (n: number) => `${n.toFixed(2)}"`;
 
+const bendingModes: readonly Mode[] = ["offset", "saddle3", "saddle4", "stub"];
+
+/**
+ * Repairs stored state before it is used. An angle this build does not offer
+ * used to reach the trig, so an offset rendered a negative distance between
+ * marks. Dimensions are left alone: the modes already reject non-positive and
+ * non-finite ones.
+ */
+function reviveState(raw: unknown): State {
+  const value = (raw ?? {}) as Partial<State>;
+  return {
+    mode: listedValue(value.mode, bendingModes, DEFAULT.mode),
+    offsetHeight: value.offsetHeight ?? DEFAULT.offsetHeight,
+    angle: listedValue<number>(value.angle, OFFSET_ANGLES, DEFAULT.angle),
+    saddleDepth: value.saddleDepth ?? DEFAULT.saddleDepth,
+    saddle4Depth: value.saddle4Depth ?? DEFAULT.saddle4Depth,
+    saddle4Angle: listedValue<number>(
+      value.saddle4Angle,
+      OFFSET_ANGLES,
+      DEFAULT.saddle4Angle,
+    ),
+    stubHeight: value.stubHeight ?? DEFAULT.stubHeight,
+    takeUpSize: listedValue(
+      value.takeUpSize,
+      Object.keys(TAKE_UP),
+      DEFAULT.takeUpSize,
+    ),
+  };
+}
+
 export default function ConduitBendingPage() {
-  const [s, setS] = usePersistentState<State>("cw:bending", DEFAULT);
-  useLoadSavedState<State>(setS);
+  const [s, setS] = usePersistentState<State>("cw:bending", DEFAULT, reviveState);
+  useLoadSavedState<State>((loaded) => setS(reviveState(loaded)));
   const set = <K extends keyof State>(k: K, v: State[K]) =>
     setS((p) => ({ ...p, [k]: v }));
   const num = (v: number | "") => (v === "" ? 0 : v);
