@@ -1,8 +1,9 @@
 import { lazy, Suspense } from "react";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
 import Home from "./pages/Home";
 import { CloudSyncManager } from "./components/CloudSyncManager";
 import { RouteMetadata } from "./components/RouteMetadata";
+import { RouteErrorBoundary } from "./components/RouteErrorBoundary";
 import { RequireAuth } from "./components/RequireAuth";
 import { Analytics } from "@vercel/analytics/react";
 import { useAuth } from "./lib/auth";
@@ -32,6 +33,19 @@ const ConduitBendingPage = lazy(
   () => import("./calculators/conduit-bending/ConduitBendingPage"),
 );
 
+/**
+ * Render-throw probe. Vite replaces `import.meta.env.VITE_E2E` at build time, so
+ * this route and the component below are dead code in a production build; the
+ * Playwright webServer sets VITE_E2E=1 to prove the error boundary works.
+ */
+const E2E_PROBE = import.meta.env.VITE_E2E === "1";
+
+function ErrorProbe(): never {
+  throw new Error(
+    "E2E render probe: intentional failure to exercise the route error boundary",
+  );
+}
+
 function LoadingScreen() {
   return (
     <main
@@ -45,6 +59,9 @@ function LoadingScreen() {
 
 export default function App() {
   const { loading: authLoading } = useAuth();
+  // Keying the boundary by pathname clears a caught error as soon as the user
+  // navigates, so one broken page cannot trap the rest of the app.
+  const { pathname } = useLocation();
 
   return (
     <>
@@ -59,55 +76,60 @@ export default function App() {
               jump straight to the page content; without it the document had no
               main landmark at all (axe landmark-one-main). */}
           <main>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/jobs" element={<Jobs />} />
-              <Route path="/jobs/:id" element={<JobDetail />} />
-              <Route path="/jobs/:id/report" element={<JobReport />} />
-              <Route path="/login" element={<Account />} />
-              <Route
-                path="/account"
-                element={
-                  <RequireAuth>
-                    <Account />
-                  </RequireAuth>
-                }
-              />
-              <Route path="/upgrade" element={<Upgrade />} />
-              <Route path="/terms" element={<Terms />} />
-              <Route path="/privacy" element={<Privacy />} />
-              <Route
-                path="/voltage-drop-guide"
-                element={<GuidePage slug="voltage-drop" />}
-              />
-              <Route
-                path="/conduit-fill-guide"
-                element={<GuidePage slug="conduit-fill" />}
-              />
-              <Route
-                path="/codewire-vs-uglys"
-                element={<GuidePage slug="vs-uglys" />}
-              />
-              <Route
-                path="/wire-size-chart"
-                element={<GuidePage slug="wire-size" />}
-              />
-              <Route
-                path="/box-fill-guide"
-                element={<GuidePage slug="box-fill" />}
-              />
-              <Route
-                path="/conduit-bending-guide"
-                element={<GuidePage slug="bending" />}
-              />
-              <Route path="/voltage-drop" element={<VoltageDropPage />} />
-              <Route path="/conduit-fill" element={<ConduitFillPage />} />
-              <Route path="/ampacity" element={<AmpacityPage />} />
-              <Route path="/box-fill" element={<BoxFillPage />} />
-              <Route path="/conduit-bending" element={<ConduitBendingPage />} />
-              <Route path="*" element={<Home />} />
-            </Routes>
+            <RouteErrorBoundary resetKey={pathname}>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/jobs" element={<Jobs />} />
+                <Route path="/jobs/:id" element={<JobDetail />} />
+                <Route path="/jobs/:id/report" element={<JobReport />} />
+                <Route path="/login" element={<Account />} />
+                <Route
+                  path="/account"
+                  element={
+                    <RequireAuth>
+                      <Account />
+                    </RequireAuth>
+                  }
+                />
+                <Route path="/upgrade" element={<Upgrade />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/privacy" element={<Privacy />} />
+                <Route
+                  path="/voltage-drop-guide"
+                  element={<GuidePage slug="voltage-drop" />}
+                />
+                <Route
+                  path="/conduit-fill-guide"
+                  element={<GuidePage slug="conduit-fill" />}
+                />
+                <Route
+                  path="/codewire-vs-uglys"
+                  element={<GuidePage slug="vs-uglys" />}
+                />
+                <Route
+                  path="/wire-size-chart"
+                  element={<GuidePage slug="wire-size" />}
+                />
+                <Route
+                  path="/box-fill-guide"
+                  element={<GuidePage slug="box-fill" />}
+                />
+                <Route
+                  path="/conduit-bending-guide"
+                  element={<GuidePage slug="bending" />}
+                />
+                <Route path="/voltage-drop" element={<VoltageDropPage />} />
+                <Route path="/conduit-fill" element={<ConduitFillPage />} />
+                <Route path="/ampacity" element={<AmpacityPage />} />
+                <Route path="/box-fill" element={<BoxFillPage />} />
+                <Route path="/conduit-bending" element={<ConduitBendingPage />} />
+                {E2E_PROBE && (
+                  <Route path="/__error-probe" element={<ErrorProbe />} />
+                )}
+                <Route path="*" element={<Home />} />
+              </Routes>
+            </RouteErrorBoundary>
           </main>
         </Suspense>
       )}

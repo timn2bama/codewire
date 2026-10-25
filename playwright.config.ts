@@ -32,13 +32,17 @@ export default defineConfig({
     // stubs every request they produce, so no real project or secret is needed.
     // Production builds are unaffected: they run `npm run build` directly.
     command:
-      "VITE_SUPABASE_URL=https://stub.supabase.co VITE_SUPABASE_ANON_KEY=stub-anon-key npm run build && npm run preview -- --host 127.0.0.1 --port 4173",
+      "VITE_SUPABASE_URL=https://stub.supabase.co VITE_SUPABASE_ANON_KEY=stub-anon-key VITE_E2E=1 npm run build && npm run preview -- --host 127.0.0.1 --port 4173",
     url: "http://127.0.0.1:4173",
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
     env: {
       VITE_SUPABASE_URL: "https://stub.supabase.co",
       VITE_SUPABASE_ANON_KEY: "stub-anon-key",
+      // Registers the /__error-probe route so the route error boundary can be
+      // exercised against a real production build. Vite inlines this flag, so
+      // the probe and its component are dead code in the deployed bundle.
+      VITE_E2E: "1",
     },
   },
 });
