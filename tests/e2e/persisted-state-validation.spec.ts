@@ -74,6 +74,38 @@ test("an unlisted stored trade size is repaired instead of blanking conduit-fill
     .toBe('1/2"');
 });
 
+test("an unlisted conductor size repairs to the page default, not the smallest listed", async ({
+  page,
+}) => {
+  // The seeded row above is THHN / 12 AWG, so it never exercises the size
+  // fallback. Replace it with a size this build does not list: repairing to
+  // the first offered size would silently rewrite a 12 AWG circuit to 18 AWG.
+  await page.addInitScript(() => {
+    localStorage.setItem(
+      "cw:conduit-fill",
+      JSON.stringify({
+        type: "EMT",
+        tradeSize: '1/2"',
+        conductors: [{ insulation: "THHN", size: "99", quantity: 3 }],
+      }),
+    );
+  });
+  await page.goto("/conduit-fill");
+
+  await expect(
+    page.getByRole("heading", { name: "Conduit Fill" }),
+  ).toBeVisible();
+  await expect
+    .poll(async () =>
+      page.evaluate(
+        () =>
+          JSON.parse(localStorage.getItem("cw:conduit-fill")!).conductors[0]
+            .size,
+      ),
+    )
+    .toBe("12");
+});
+
 test("an unlisted stored conductor size is counted instead of read as zero", async ({
   page,
 }) => {

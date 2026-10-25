@@ -62,9 +62,18 @@ function reviveState(raw: unknown): State {
   const rows = Array.isArray(value.conductors)
     ? value.conductors
     : DEFAULT.conductors;
+  // The fallback is the value a fresh page starts with, not simply the first
+  // entry in the list: repairing to sizes[0] would silently rewrite a 12 AWG
+  // circuit to 18 AWG. Fall back to the first offered size only when this
+  // build no longer offers the default itself.
+  const defaultTradeSize = listedValue(
+    DEFAULT.tradeSize,
+    sizes as readonly string[],
+    sizes[0],
+  );
   return {
     type,
-    tradeSize: listedValue(value.tradeSize, sizes, sizes[0]),
+    tradeSize: listedValue(value.tradeSize, sizes, defaultTradeSize),
     conductors: rows.map((conductor) => {
       const insulation = listedValue(
         conductor?.insulation,
@@ -72,12 +81,17 @@ function reviveState(raw: unknown): State {
         DEFAULT.conductors[0].insulation,
       );
       const conductorSizes = insulationSizes(insulation);
+      const defaultSize = listedValue(
+        DEFAULT.conductors[0].size,
+        conductorSizes,
+        conductorSizes[0],
+      );
       return {
         insulation,
         size: listedValue(
           conductor?.size,
           conductorSizes,
-          conductorSizes[0],
+          defaultSize,
         ),
         quantity: conductor?.quantity ?? DEFAULT.conductors[0].quantity,
       };
