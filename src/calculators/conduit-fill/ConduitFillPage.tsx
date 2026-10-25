@@ -3,7 +3,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { CalculatorShell } from "../../components/CalculatorShell";
 import { ResultCard } from "../../components/ResultCard";
 import { SelectField } from "../../components/fields";
-import { usePersistentState } from "../../lib/usePersistentState";
+import { listedValue, usePersistentState } from "../../lib/usePersistentState";
 import { useLoadSavedState } from "../../lib/useLoadSavedState";
 import { sizeLabel } from "../../lib/nec/types";
 import type { WireSize } from "../../lib/nec/types";
@@ -46,6 +46,58 @@ const typeOptions = (Object.keys(CONDUIT_TYPE_LABEL) as ConduitType[]).map(
 const insulationOptions = (Object.keys(INSULATION_LABEL) as Insulation[]).map(
   (i) => ({ value: i, label: INSULATION_LABEL[i] }),
 );
+const conductorTypes = Object.keys(CONDUIT_TYPE_LABEL) as ConduitType[];
+const insulations = Object.keys(INSULATION_LABEL) as Insulation[];
+
+/**
+ * Repairs stored state before it is used. An unknown trade size used to reach
+ * the calculation, throw during render and leave a blank page; an unknown
+ * conductor size was silently counted as zero area. Quantities are left alone,
+ * because a blank one is a field the user is still editing.
+ */
+function reviveState(raw: unknown): State {
+  const value = (raw ?? {}) as Partial<State>;
+  const type = listedValue(value.type, conductorTypes, DEFAULT.type);
+  const sizes = tradeSizesFor(type);
+  const rows = Array.isArray(value.conductors)
+    ? value.conductors
+    : DEFAULT.conductors;
+  // The fallback is the value a fresh page starts with, not simply the first
+  // entry in the list: repairing to sizes[0] would silently rewrite a 12 AWG
+  // circuit to 18 AWG. Fall back to the first offered size only when this
+  // build no longer offers the default itself.
+  const defaultTradeSize = listedValue(
+    DEFAULT.tradeSize,
+    sizes as readonly string[],
+    sizes[0],
+  );
+  return {
+    type,
+    tradeSize: listedValue(value.tradeSize, sizes, defaultTradeSize),
+    conductors: rows.map((conductor) => {
+      const insulation = listedValue(
+        conductor?.insulation,
+        insulations,
+        DEFAULT.conductors[0].insulation,
+      );
+      const conductorSizes = insulationSizes(insulation);
+      const defaultSize = listedValue(
+        DEFAULT.conductors[0].size,
+        conductorSizes,
+        conductorSizes[0],
+      );
+      return {
+        insulation,
+        size: listedValue(
+          conductor?.size,
+          conductorSizes,
+          defaultSize,
+        ),
+        quantity: conductor?.quantity ?? DEFAULT.conductors[0].quantity,
+      };
+    }),
+  };
+}
 
 function QuantityField({
   value,
@@ -87,8 +139,12 @@ function QuantityField({
 }
 
 export default function ConduitFillPage() {
-  const [s, setS] = usePersistentState<State>("cw:conduit-fill", DEFAULT);
-  useLoadSavedState<State>(setS);
+  const [s, setS] = usePersistentState<State>(
+    "cw:conduit-fill",
+    DEFAULT,
+    reviveState,
+  );
+  useLoadSavedState<State>((loaded) => setS(reviveState(loaded)));
 
   const tradeOptions = tradeSizesFor(s.type).map((t) => ({
     value: t,

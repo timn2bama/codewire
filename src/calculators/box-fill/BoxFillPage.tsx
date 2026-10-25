@@ -2,7 +2,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { CalculatorShell } from "../../components/CalculatorShell";
 import { ResultCard } from "../../components/ResultCard";
 import { NumberField, SelectField } from "../../components/fields";
-import { usePersistentState } from "../../lib/usePersistentState";
+import { listedValue, usePersistentState } from "../../lib/usePersistentState";
 import { useLoadSavedState } from "../../lib/useLoadSavedState";
 import { sizeLabel } from "../../lib/nec/types";
 import type { WireSize } from "../../lib/nec/types";
@@ -34,10 +34,43 @@ const groundOptions = [
   { value: "none", label: "No EGC" },
   ...BOX_FILL_SIZES.map((s) => ({ value: s, label: sizeLabel(s) })),
 ];
+const groundChoices: readonly (WireSize | "none")[] = ["none", ...BOX_FILL_SIZES];
+
+/**
+ * Repairs stored state before it is used. A size this build does not list used
+ * to be read as a zero-volume conductor, so a box that does not fit could
+ * still be reported as "Fits". Sizes come from the selects, so the only way to
+ * store an unlisted one is an older build, a saved calculation restored from
+ * JobDetail, or another device; every conductor counts once it is repaired.
+ */
+function reviveState(raw: unknown): State {
+  const value = (raw ?? {}) as Partial<State>;
+  const rows = Array.isArray(value.conductors)
+    ? value.conductors
+    : DEFAULT.conductors;
+  return {
+    boxVolume: value.boxVolume ?? DEFAULT.boxVolume,
+    conductors: rows.map((conductor) => ({
+      size: listedValue(
+        conductor?.size,
+        BOX_FILL_SIZES,
+        DEFAULT.conductors[0].size,
+      ),
+      quantity: conductor?.quantity ?? DEFAULT.conductors[0].quantity,
+    })),
+    devices: value.devices ?? DEFAULT.devices,
+    hasClamps: value.hasClamps ?? DEFAULT.hasClamps,
+    groundSize: listedValue(
+      value.groundSize,
+      groundChoices,
+      DEFAULT.groundSize,
+    ),
+  };
+}
 
 export default function BoxFillPage() {
-  const [s, setS] = usePersistentState<State>("cw:box-fill", DEFAULT);
-  useLoadSavedState<State>(setS);
+  const [s, setS] = usePersistentState<State>("cw:box-fill", DEFAULT, reviveState);
+  useLoadSavedState<State>((loaded) => setS(reviveState(loaded)));
   const num = (v: number | "") => (v === "" ? 0 : v);
 
   const updateRow = (i: number, patch: Partial<Row>) =>
