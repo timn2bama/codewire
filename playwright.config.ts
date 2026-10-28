@@ -1,4 +1,48 @@
+import fs from "node:fs";
 import { defineConfig, devices } from "@playwright/test";
+
+// This host keeps the Playwright browsers outside Chromium's default cache and
+// outside the image-owned /opt/hermes tree (which is read-only, so `playwright
+// install` fails there with EACCES). Every local run therefore needs
+// PLAYWRIGHT_BROWSERS_PATH, and forgetting it produced "browserType.launch:
+// Executable doesn't exist" - a launch failure that reads like a broken suite
+// rather than a missing environment variable.
+//
+// Resolving it here means `npx playwright test` works with no wrapper and no
+// exported variable. A configured path is honoured only when it actually holds a
+// chrome binary: this host exports PLAYWRIGHT_BROWSERS_PATH=/opt/hermes/tools, and
+// that directory's chromium builds are empty, so a naive "used if set" rule still
+// fails at launch. On a CI runner the local directory does not exist and the
+// default install path is used, so CI behaviour is unchanged.
+const LOCAL_BROWSERS = "/opt/data/.playwright";
+
+/**
+ * The revision this Playwright actually launches, read from its own manifest -
+ * guessing from directory names is how `/opt/hermes/tools` (which holds only the
+ * older chromium-1208 that lhci uses) looked usable while every e2e launch failed
+ * with "Executable doesn't exist .../chromium_headless_shell-1248/...".
+ */
+function expectedHeadlessShellRevision(): string | null {
+  try {
+    const manifest = JSON.parse(
+      fs.readFileSync("node_modules/playwright-core/browsers.json", "utf8"),
+    ) as { browsers?: { name: string; revision: string }[] };
+    const entry = manifest.browsers?.find(
+      (b) => b.name === "chromium-headless-shell",
+    );
+    return entry ? String(entry.revision) : null;
+  } catch {
+    return null;
+  }
+}
+
+const revision = expectedHeadlessShellRevision();
+const hasRevision = (dir: string | undefined): boolean =>
+  Boolean(dir && revision && fs.existsSync(`${dir}/chromium_headless_shell-${revision}`));
+
+if (!hasRevision(process.env.PLAYWRIGHT_BROWSERS_PATH) && hasRevision(LOCAL_BROWSERS)) {
+  process.env.PLAYWRIGHT_BROWSERS_PATH = LOCAL_BROWSERS;
+}
 
 export default defineConfig({
   testDir: "./tests/e2e",
