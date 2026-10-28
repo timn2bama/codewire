@@ -209,7 +209,7 @@ export default function ConduitFillPage() {
       result={
         r ? <ResultCard
           primary={`${r.fillPercent.toFixed(1)}%`}
-          primaryLabel={`Fill (${(r.allowablePercent * 100).toFixed(0)}% allowed)`}
+          primaryLabel={`Fill in ${s.tradeSize} ${CONDUIT_TYPE_LABEL[s.type]} · ${(r.allowablePercent * 100).toFixed(0)}% allowed`}
           stats={[
             { label: "Wires", value: `${r.usedArea.toFixed(3)} in²` },
             { label: "Max", value: `${r.allowableArea.toFixed(3)} in²` },
@@ -300,17 +300,23 @@ export default function ConduitFillPage() {
 
       <div className="rounded-xl border border-slate-800 bg-slate-900 p-3 text-sm">
         <span className="text-slate-400">
-          Smallest {CONDUIT_TYPE_LABEL[s.type]} that fits:{" "}
+          Smallest {CONDUIT_TYPE_LABEL[s.type]} that fits these conductors:{" "}
         </span>
         {!valid ? (
           <span className="text-amber-300">valid quantities required</span>
         ) : recommended ? (
-          <button
-            className="inline-flex min-h-6 items-center font-semibold text-brand underline-offset-2 hover:underline"
-            onClick={() => setS((p) => ({ ...p, tradeSize: recommended }))}
-          >
-            {recommended} →
-          </button>
+          recommended === s.tradeSize ? (
+            <span className="font-semibold text-slate-300">
+              {recommended} (already selected)
+            </span>
+          ) : (
+            <button
+              className="inline-flex min-h-6 items-center font-semibold text-brand underline-offset-2 hover:underline"
+              onClick={() => setS((p) => ({ ...p, tradeSize: recommended }))}
+            >
+              {recommended} →
+            </button>
+          )
         ) : (
           <span className="text-red-400">none listed</span>
         )}
