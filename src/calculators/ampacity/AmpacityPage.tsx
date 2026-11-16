@@ -227,21 +227,29 @@ export default function AmpacityPage() {
         </div>
       </FieldGroup>
 
-      <div className="rounded-xl border border-slate-800 bg-slate-900 p-3 text-sm">
-        <span className="text-slate-400">Smallest size for {load || 0} A: </span>
-        {load > 0 && recommended ? (
-          <button
-            className="inline-flex min-h-6 items-center font-semibold text-brand underline-offset-2 hover:underline"
-            onClick={() => set("size", recommended)}
-          >
-            {sizeLabel(recommended)} →
-          </button>
-        ) : (
+      {/* Withheld while the input is invalid: `recommended` is null for an
+          incomplete conductor count or ambient temperature, which used to
+          print "none in table" — an engineering claim that no wire in the
+          table carries the load, when the real cause was missing input. */}
+      {!invalid && (
+        <div className="rounded-xl border border-slate-800 bg-slate-900 p-3 text-sm">
           <span className="text-slate-400">
-            {load > 0 ? "none in table" : "enter a load"}
+            Smallest size for {load || 0} A:{" "}
           </span>
-        )}
-      </div>
+          {load > 0 && recommended ? (
+            <button
+              className="inline-flex min-h-6 items-center font-semibold text-brand underline-offset-2 hover:underline"
+              onClick={() => set("size", recommended)}
+            >
+              {sizeLabel(recommended)} →
+            </button>
+          ) : (
+            <span className="text-slate-400">
+              {load > 0 ? "none in table" : "enter a load"}
+            </span>
+          )}
+        </div>
+      )}
 
       {!invalid && (
         <p className="text-xs text-slate-400">

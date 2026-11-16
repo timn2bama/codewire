@@ -27,10 +27,19 @@ test("a zero current-carrying count suppresses the ampacity result", async ({
   await expect(result).toHaveCount(0);
   await expect(save).toHaveCount(0);
 
-  // A real bundled count restores the result and the save affordance.
+  // The sizing suggestion was rendered unconditionally, and `recommended` is
+  // null for an incomplete count, so it printed "none in table" — telling the
+  // user no wire in Table 310.16 carries the load when the input was merely
+  // incomplete. It is withheld with the rest of the result.
+  await expect(page.getByText("Smallest size for")).toHaveCount(0);
+  await expect(page.getByText("none in table")).toHaveCount(0);
+
+  // A real bundled count restores the result, the suggestion and the save
+  // affordance.
   await currentCarrying.fill("3");
   await expect(result).toBeVisible();
   await expect(save).toBeVisible();
+  await expect(page.getByText("Smallest size for")).toBeVisible();
 });
 
 test("a blank ambient temperature suppresses the ampacity result", async ({
